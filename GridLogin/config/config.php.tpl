@@ -88,6 +88,16 @@ $config['log_date_format'] = 'Y-m-d H:i:s';
 
 /*
 |--------------------------------------------------------------------------
+| Message of the Day
+|--------------------------------------------------------------------------
+|
+| The message to return to clients on successful login
+|
+*/
+$config['message_of_the_day'] = "Welcome to OpenSim!";
+
+/*
+|--------------------------------------------------------------------------
 | Default Location
 |--------------------------------------------------------------------------
 |
@@ -116,3 +126,9 @@ $config['library_owner_id'] = "ba2a564a-f0f1-4b82-9c61-b7520bfcd09f";
 //$config['library_folder_id'] = "/Grid Library";
 //$config['library_folder_path'] = "";
 
+//whether to require email validation for login
+$config['validation_required'] = false;
+
+//User Access Level at which Users will not be blocked by
+//Either email validation or closed grids
+$config['access_level_minimum'] = 200;
