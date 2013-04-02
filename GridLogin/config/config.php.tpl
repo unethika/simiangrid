@@ -2,28 +2,6 @@
 
 /*
 |--------------------------------------------------------------------------
-| Database Connectivity Settings
-|--------------------------------------------------------------------------
-|
-| The settings needed to access your database
-|
-*/
-$config['db_hostname'] = "@@DB_HOST@@";
-$config['db_username'] = "@@DB_USER@@";
-$config['db_password'] = "@@DB_PASSWORD@@";
-$config['db_database'] = "@@DB_NAME@@";
-$config['db_driver'] = "mysql";
-$config['db_prefix'] = "";
-$config['db_persistent'] = TRUE;
-
-// This is the number of days between updates to LastAccess for Assets
-// and is useful if you want to clean up unused Assets from the Db
-// 0 turns off all updates and is the old behavior
-$config['access_update_interval'] = 0;
-
-
-/*
-|--------------------------------------------------------------------------
 | Service URLs
 |--------------------------------------------------------------------------
 |
@@ -56,45 +34,6 @@ $config['hypergrid_default_region'] = "OpenSim Test";
 
 /*
 |--------------------------------------------------------------------------
-| Asset Driver
-|--------------------------------------------------------------------------
-|
-| Select the inventory backend to use. Possible values:
-|   SQLAssets - Database-backed asset backend.
-|   MongoAssets - MongoDB-backed asset backend.
-|
-*/
-$config['asset_driver'] = "SQLAssets";
-//$config['asset_driver'] = "MongoAssets";
-//$config['asset_driver'] = "FSAssets";
-
-/* MongoDB server hostname and port number for the MongoAssets driver */
-$config['mongo_server'] = "localhost:27017";
-/* MongoDB database name */
-$config['mongo_database'] = "SimianGrid";
-
-/*
-| FSAssets stores the asset data on the local filesystem.
-| fsassets_path == where to store the asset data
-*/
-//$config['fsassets_path'] = "/srv/simiangrid/assets";
-
-/*
-|--------------------------------------------------------------------------
-| Inventory Driver
-|--------------------------------------------------------------------------
-|
-| Select the inventory backend to use. Possible values:
-|   ALT - Adjacency List Table. A simple and fast database-backed inventory
-|   MPTT - Modified Preorder Tree Table. An advanced database-backed
-|          inventory optimized for read access. WORK IN PROGRESS.
-|
-*/
-$config['inventory_driver'] = "ALT";
-//$config['inventory_driver'] = "MPTT";
-
-/*
-|--------------------------------------------------------------------------
 | Error Logging Threshold
 |--------------------------------------------------------------------------
 |
@@ -112,18 +51,6 @@ $config['inventory_driver'] = "ALT";
 |
 */
 $config['log_threshold'] = 1;
-
-/*
-|--------------------------------------------------------------------------
-| Map Tile Directory Path
-|--------------------------------------------------------------------------
-|
-| Leave this BLANK unless you would like to set something other than the default
-| map/ folder. Use a full server path with trailing slash. This directory should
-| map to the URL specified in $config['map_service'] above
-|
-*/
-$config["map_path"] = "";
 
 /*
 |--------------------------------------------------------------------------
@@ -161,16 +88,6 @@ $config['log_date_format'] = 'Y-m-d H:i:s';
 
 /*
 |--------------------------------------------------------------------------
-| Message of the Day
-|--------------------------------------------------------------------------
-|
-| The message to return to clients on successful login
-|
-*/
-$config['message_of_the_day'] = "@@MOTD@@";
-
-/*
-|--------------------------------------------------------------------------
 | Default Location
 |--------------------------------------------------------------------------
 |
@@ -198,53 +115,4 @@ $config['library_owner_id'] = "ba2a564a-f0f1-4b82-9c61-b7520bfcd09f";
 //$config['library_owner_name'] = "Library TestUser";
 //$config['library_folder_id'] = "/Grid Library";
 //$config['library_folder_path'] = "";
-
-/*
-|--------------------------------------------------------------------------
-| Blacklisted Packets
-|--------------------------------------------------------------------------
-|
-| A comma-separated list of server->client messages that may not be sent
-| over UDP on this grid. Do not modify this list unless you understand the
-| security implications
-|
-*/
-$config['udp_blacklist'] = "EnableSimulator,TeleportFinish,CrossedRegion";
-
-/*
-|--------------------------------------------------------------------------
-| Default Assets
-|--------------------------------------------------------------------------
-|
-| Default asset URLs for this grid. These assets must exist in the asset
-| service
-|
-*/
-$config['sun_texture_id'] = "cce0f112-878f-4586-a2e2-a8f104bba271";
-$config['moon_texture_id'] = "d07f6eed-b96a-47cd-b51d-400ad4a1c428";
-$config['cloud_texture_id'] = "dc4b9f0b-d008-45c6-96a4-01dd947ac621";
-
-//whether to require email validation for login
-$config['validation_required'] = false;
-
-//User Access Level at which Users will not be blocked by
-//Either email validation or closed grids
-$config['access_level_minimum'] = 200;
-
-// Settings for appearance
-// These configuration variables give you some control over opensim versions
-// send_packedapp should be false to support older opensim versions
-$config['send_packedapp'] = true;
-$config['send_wearables'] = false;
-
-/*
-|--------------------------------------------------------------------------
-| Authorize Commands
-|--------------------------------------------------------------------------
-|
-| Use capabilities to authorize commands, default is to authorize
-| all operations regardless of the capability provided
-|
-*/
-$config['authorize_commands'] = false;
 

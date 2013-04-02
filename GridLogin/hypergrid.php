@@ -174,7 +174,7 @@ function hg_register_user($user_id, $username, $homeuri)
     $config =& get_config();
 
     // only create the user if it doesn't already exist
-    if (get_user($user_id) != null)
+    if (get_user_by_id($user_id) != null)
         return true;
 
     log_message('info',"[hypergrid] creating new hypergrid user: $username");
@@ -391,7 +391,7 @@ function get_home_region($method_name, $params, $user_data)
     log_message('info', "get_home_region called with UserID $userID");
     
     // Fetch the user
-    $user = get_user($userID);
+    $user = get_user_by_id($userID);
     if (empty($user))
     {
         log_message('warn', "Unknown UserID $userID");

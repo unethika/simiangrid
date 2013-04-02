@@ -33,21 +33,20 @@
  * @link       http://openmetaverse.googlecode.com/
  */
 
-define('BASEPATH', str_replace("\\", "/", realpath(dirname(__FILE__) . '/..') . '/'));
+define('COMMONPATH', str_replace("\\", "/", realpath(dirname(__FILE__) . '/..') . '/GridCommon/'));
+define('BASEPATH', str_replace("\\", "/", realpath(dirname(__FILE__)) . '/'));
 
-require_once(BASEPATH . 'common/Config.php');
-require_once(BASEPATH . 'common/Errors.php');
-require_once(BASEPATH . 'common/Log.php');
-require_once(BASEPATH . 'common/Interfaces.php');
-require_once(BASEPATH . 'common/UUID.php');
-require_once(BASEPATH . 'common/Vector3.php');
-require_once(BASEPATH . 'common/Curl.php');
-require_once(BASEPATH . 'common/Scene.php');
-require_once(BASEPATH . 'common/SceneLocation.php');
-require_once(BASEPATH . 'common/Session.php');
-
-define('LOGINPATH', BASEPATH . 'login/');
-require_once(LOGINPATH . 'lib/Class.Appearance.php');
+require_once(COMMONPATH . 'Config.php');
+require_once(COMMONPATH . 'Errors.php');
+require_once(COMMONPATH . 'Log.php');
+require_once(COMMONPATH . 'Interfaces.php');
+require_once(COMMONPATH . 'UUID.php');
+require_once(COMMONPATH . 'Vector3.php');
+require_once(COMMONPATH . 'Curl.php');
+require_once(COMMONPATH . 'SimianGrid.php');
+require_once(COMMONPATH . 'Scene.php');
+require_once(COMMONPATH . 'SceneLocation.php');
+require_once(COMMONPATH . 'Session.php');
 
 ///////////////////////////////////////////////////////////////////////////////
 // XML-RPC Server
@@ -79,167 +78,6 @@ function make_seed()
     return (float)$sec + ((float)$usec * 100000);
 }
 
-function ends_with($str, $sub)
-{
-   return (substr($str, strlen($str) - strlen($sub)) == $sub);
-}
-
-function webservice_post($url, $params, $jsonRequest = FALSE)
-{
-    // Parse the RequestMethod out of the request for debugging purposes
-    if (isset($params['RequestMethod']))
-        $requestMethod = $params['RequestMethod'];
-    else
-        $requestMethod = '';
-    
-    if (empty($url))
-    {
-        log_message('error', "Canceling $requestMethod POST to an empty URL");
-        return array('Message' => 'Web service URL is not configured');
-    }
-    
-    $options = array();
-    if ($jsonRequest)
-    {
-        $params = json_encode($params);
-	$options[CURLOPT_HTTPHEADER] = array('Content-Type: application/json');
-    }
-
-    // POST our query and fetch the response
-    $curl = new Curl();
-    $response = $curl->simple_post($url, $params, $options);
-    
-    // log_message('debug', sprintf('Response received from %s POST to %s: %s', $requestMethod, $url, $response));
-    
-    // JSON decode the response
-    $response = json_decode($response, TRUE);
-    
-    if (!isset($response))
-        $response = array('Message' => 'Invalid or missing response');
-    
-    return $response;
-}
-
-function authorize_identity($name, $passHash)
-{
-    $config =& get_config();
-    $userService = $config['user_service'];
-    
-    $userID = NULL;
-    
-    $response = webservice_post($userService, array(
-        'RequestMethod' => 'AuthorizeIdentity',
-        'Identifier' => $name,
-        'Credential' => $passHash,
-        'Type' => 'md5hash')
-    );
-    
-    if (!empty($response['Success']))
-        UUID::TryParse($response['UserID'], $userID);
-    
-    return $userID;
-}
-
-function get_capability($capID)
-{
-    $config =& get_config();
-    $userService = $config['user_service'];
-    
-    $response = webservice_post($userService, array(
-        'RequestMethod' => 'GetCapability',
-        'CapabilityID' => $capID)
-    );
-    
-    if (!empty($response['Success']) && $response['Resource'] == 'login')
-        return $response['OwnerID'];
-    
-    return null;
-}
-
-function get_user($userID)
-{
-    $config =& get_config();
-    $userService = $config['user_service'];
-    
-    $response = webservice_post($userService, array(
-        'RequestMethod' => 'GetUser',
-        'UserID' => $userID)
-    );
-    
-    if (!empty($response['Success']) && !empty($response['User']))
-        return $response['User'];
-    
-    return null;
-}
-
-function get_user_by_name($userName)
-{
-    $config =& get_config();
-    $userService = $config['user_service'];
-    
-    $response = webservice_post($userService, array(
-        'RequestMethod' => 'GetUser',
-        'Name' => $userName)
-    );
-    
-    if (!empty($response['Success']) && !empty($response['User']))
-        return $response['User'];
-    
-    return null;
-}
-
-function get_session($userID)
-{
-    $config =& get_config();
-    $userService = $config['user_service'];
-        
-    $response = webservice_post($userService, array(
-        'RequestMethod' => 'GetSession',
-        'UserID' => $userID)
-    );
-    
-    if (!empty($response['Success']))
-        return $response;
-    
-    return null;
-}
-
-function add_session($userID, &$sessionID, &$secureSessionID)
-{
-    $config =& get_config();
-    $userService = $config['user_service'];
-    
-    $response = webservice_post($userService, array(
-        'RequestMethod' => 'AddSession',
-        'UserID' => $userID)
-    );
-    
-    if (!empty($response['Success']) &&
-        UUID::TryParse($response['SessionID'], $sessionID) &&
-        UUID::TryParse($response['SecureSessionID'], $secureSessionID))
-    {
-        return true;
-    }
-    
-    return false;
-}
-
-function remove_session($sessionID)
-{
-    $config =& get_config();
-    $userService = $config['user_service'];
-    
-    $response = webservice_post($userService, array(
-        'RequestMethod' => 'RemoveSession',
-        'SessionID' => $sessionID)
-    );
-    
-    if (!empty($response['Success']))
-        return true;
-    
-    return false;
-}
-
 function inform_scene_of_logout($sceneID, $userID)
 {
     if ($sceneID == UUID::Zero)
@@ -256,82 +94,6 @@ function inform_scene_of_logout($sceneID, $userID)
     {
         log_message('error', "Cannot inform scene $sceneID of logout, scene lookup failed");
     }
-}
-
-function lookup_scene_by_id($sceneID)
-{
-    $config =& get_config();
-    $gridService = $config['grid_service'];
-    
-    $response = webservice_post($gridService, array(
-        'RequestMethod' => 'GetScene',
-        'SceneID' => $sceneID,
-        'Enabled' => '1')
-    );
-    
-    if (!empty($response['Success']))
-        return Scene::fromOSD($response);
-    
-    return null;
-}
-
-function lookup_scene_by_name($name)
-{
-    $config =& get_config();
-    $gridService = $config['grid_service'];
-    
-    $response = webservice_post($gridService, array(
-        'RequestMethod' => 'GetScenes',
-        'NameQuery' => $name,
-        'Enabled' => '1',
-        'MaxNumber' => '1')
-    );
-    
-    if (!empty($response['Success']) && is_array($response['Scenes']) && count($response['Scenes']) > 0)
-        return Scene::fromOSD($response['Scenes'][0]);
-    
-    return null;
-}
-
-function lookup_scene_by_position($position, $findClosest = false)
-{
-    $config =& get_config();
-    $gridService = $config['grid_service'];
-    
-    $response = webservice_post($gridService, array(
-        'RequestMethod' => 'GetScene',
-        'Position' => $position,
-        'FindClosest' => ($findClosest ? '1' : '0'),
-        'Enabled' => '1')
-    );
-    
-    if (!empty($response['Success']))
-        return Scene::fromOSD($response);
-    
-    return null;
-}
-
-function get_inventory_items($userID, $folderID, $childrenOnly, &$items)
-{
-    $config =& get_config();
-    $inventoryService = $config['inventory_service'];
-
-    $response = webservice_post($inventoryService, array(
-        'RequestMethod' => 'GetInventoryNode',
-        'ItemID' => $folderID,
-        'OwnerID' => $userID,
-        'IncludeFolders' => '1',
-        'IncludeItems' => '0',
-        'ChildrenOnly' => $childrenOnly));
-
-    if (! empty($response['Success']) && is_array($response['Items']))
-    {
-        $items = $response['Items'];
-        return true;
-    }
-
-    $items = null;
-    return false;
 }
 
 function get_inventory_folder_by_path($userID, &$folderID, $path)
@@ -411,97 +173,6 @@ function get_library_root_folder($ownerID,&$rootFolderID)
 
     $config['library_folder_id'] = $rootFolderID;
     return true;
-}
-
-function get_inventory($userID, &$rootFolderID, &$items)
-{
-    $config =& get_config();
-    $inventoryService = $config['inventory_service'];
-    
-    // This is always true in SimianGrid
-    $rootFolderID = $userID;
-    
-    $response = webservice_post($inventoryService, array(
-        'RequestMethod' => 'GetInventoryNode',
-        'ItemID' => $rootFolderID,
-        'OwnerID' => $userID,
-        'IncludeFolders' => '1',
-        'IncludeItems' => '0',
-        'ChildrenOnly' => '0')
-    );
-    
-    if (!empty($response['Success']) && is_array($response['Items']))
-    {
-        $items = $response['Items'];
-        return true;
-    }
-    
-    $items = null;
-    return false;
-}
-
-function get_friends($userID)
-{
-    $config =& get_config();
-    $userService = $config['user_service'];
-    
-    $friends = array();
-    
-    // Load the list of friends and their granted permissions
-    $response = webservice_post($userService, array(
-        'RequestMethod' => 'GetGenerics',
-        'OwnerID' => $userID,
-        'Type' => 'Friend')
-    );
-    
-    if (!empty($response['Success']) && is_array($response['Entries']))
-    {
-        $friendEntries = $response['Entries'];
-        
-        // Populate the friends array
-        foreach ($friendEntries as $friendEntry)
-        {
-            $friendID = $friendEntry['Key'];
-            $friends[$friendID] = array('buddy_rights_has' => 0, 'buddy_rights_given' => (int)$friendEntry['Value'], 'buddy_id' => $friendID);
-        }
-        
-        // Load the permissions those friends have granted to this user
-        $response = webservice_post($userService, array(
-            'RequestMethod' => 'GetGenerics',
-            'Key' => $userID,
-            'Type' => 'Friend')
-        );
-        
-        if (!empty($response['Success']) && is_array($response['Entries']))
-        {
-            $friendedMeEntries = $response['Entries'];
-            
-            foreach ($friendedMeEntries as $friendedMeEntry)
-            {
-                $friendID = $friendedMeEntry['OwnerID'];
-                
-                if (isset($friends[$friendID]))
-                {
-                    $friends[$friendID]['buddy_rights_has'] = $friendedMeEntry['Value'];
-                }
-            }
-        }
-        else
-        {
-            log_message('warn', "Failed to retrieve the reverse friends list for " . $userID . " from " . $userService . ": " . $response['Message']);
-        }
-    }
-    else
-    {
-        log_message('warn', "Failed to retrieve the friends list for " . $userID . " from " . $userService . ": " . $response['Message']);
-    }
-    
-    // Convert the friends associative array into a plain array
-    $ret = array();
-    foreach ($friends as $friend)
-        $ret[] = $friend;
-    
-    return $ret;
 }
 
 function find_start_location($start, $lastLocation, $homeLocation, &$scene, &$startPosition, &$startLookAt)
@@ -593,81 +264,6 @@ function find_start_location($start, $lastLocation, $homeLocation, &$scene, &$st
     return false;
 }
 
-function create_opensim_presence($scene, $userID, $circuitCode, $fullName, $appearance,
-    $sessionID, $secureSessionID, $startPosition, &$seedCapability)
-{
-    // These configuration variables give you some control over opensim versions
-    // send_packedapp should be false to support older opensim versions
-    $config =& get_config();
-    $sendPackedAppearance = isset($config['send_packedapp']) ? $config['send_packedapp'] : true;
-    $sendWearables = isset($config['send_wearables']) ? $config['send_wearables'] : false;
-
-    $regionBaseUrl = $scene->Address;
-    if (!ends_with($regionBaseUrl, '/'))
-        $regionBaseUrl .= '/';
-    $regionUrl = $regionBaseUrl . 'agent/' . $userID . '/';
-    
-    list($firstName, $lastName) = explode(' ', $fullName);
-    $capsPath = UUID::Random();
-    
-    log_message('warn','[LOGIN] create opensim session');
-
-    $serviceurls = array(
-        'GatekeeperURI' => $config['hypergrid_uri'],
-        'HomeURI' => $config['hypergrid_uri'],
-        'InventoryServerURI' => $config['hg_inventory_service'],
-        'AssetServerURI' => $config['hg_asset_service'],
-        'ProfileServerURI' => $config['hg_user_service'],
-        'FriendsServerURI' => $config['hypergrid_uri'],
-        'IMServerURI' => $config['hypergrid_uri']
-    );
-    
-    $params = array(
-                    'agent_id' => $userID,
-                    'caps_path' => $capsPath,
-                    'child' => false,
-                    'circuit_code' => $circuitCode,
-                    'first_name' => $firstName,
-                    'last_name' => $lastName,
-                    'session_id' => $sessionID,
-                    'secure_session_id' => $secureSessionID,
-                    'start_pos' => (string)$startPosition,
-                    'destination_x' => $scene->MinPosition->X,
-                    'destination_y' => $scene->MinPosition->Y,
-                    'destination_name' => $scene->Name,
-                    'destination_uuid' => $scene->SceneID,
-                    'appearance_serial' => 1,
-                    'teleport_flags' => 128,
-                    'serviceurls' => $serviceurls
-    );
-
-    if ($sendPackedAppearance)
-    {
-        $params['packed_appearance'] = $appearance->GetPackedAppearance();
-    }
-
-    if ($sendWearables)
-    {
-        $params['wearables'] = $appearance->GetWearables();
-        $params['attachments'] = $appearance->GetAttachments();
-    }
-
-    $response = webservice_post($regionUrl, $params, true);
-    if (!empty($response['success']))
-    {
-        log_message('warn','[LOGIN] created opensim session');
-
-        // This is the hardcoded format OpenSim uses for seed capability URLs
-        $seedCapability = $regionBaseUrl . 'CAPS/' . $capsPath . '0000/';
-        return true;
-    }
-
-    log_message('warn','[LOGIN] failed to created opensim session');
-    
-    $seedCapability = null;
-    return false;
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 
 function process_login($method_name, $params, $userID)
@@ -692,8 +288,8 @@ function process_login($method_name, $params, $userID)
         
         // Authorize the first/last/password and resolve it to a user account UUID
         log_message('debug', "Doing password-based authorization for user $fullname");
+
         $userID = authorize_identity($fullname, $req['passwd']);
-        
         if (empty($userID))
         {
             return array('reason' => 'key' , 'login' => 'false' , 'message' =>
@@ -708,7 +304,7 @@ function process_login($method_name, $params, $userID)
     }
     
     // Get information about the user account
-    $user = get_user($userID);
+    $user = get_user_by_id($userID);
     if (empty($user))
     {
         return array('reason' => 'key', 'login' => 'false', 'message' =>
@@ -793,7 +389,7 @@ function process_login($method_name, $params, $userID)
     $sessionID = null;
     $secureSessionID = null;
     
-    if (!add_session($userID, $sessionID, $secureSessionID))
+    if (! add_session($userID, $sessionID, $secureSessionID))
     {
         return array('reason' => 'presence', 'login' => 'false',
             'message' => "Failed to create a login session. Please try again later.");
@@ -822,9 +418,9 @@ function process_login($method_name, $params, $userID)
     
     // Prepare a login to the destination scene
     $seedCapability = NULL;
-    $llappearance = new Appearance($user);
-    
-    if (!create_opensim_presence($scene, $userID, $circuitCode, $fullname, $llappearance,
+    $appearance = $user['LLPackedAppearance'];
+
+    if (! create_opensim_presence($scene, $userID, $circuitCode, $fullname, $appearance,
         $sessionID, $secureSessionID, $startPosition, $seedCapability))
     {
         return array('reason' => 'presence', 'login' => 'false',
@@ -862,9 +458,9 @@ function process_login($method_name, $params, $userID)
     {
         $option = str_replace('-', '_', $req['options'][$i]);
         
-        if (file_exists(LOGINPATH . "options/Class.$option.php"))
+        if (file_exists(BASEPATH . "options/Class.$option.php"))
         {
-            if (include_once(LOGINPATH . "options/Class.$option.php"))
+            if (include_once(BASEPATH . "options/Class.$option.php"))
             {
                 $instance = new $option($user);
                 $response[$req["options"][$i]] = $instance->GetResults();
