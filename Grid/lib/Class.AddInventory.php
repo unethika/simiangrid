@@ -32,8 +32,8 @@
  * @license    http://www.debian.org/misc/bsd.license  BSD License (3 Clause)
  * @link       http://openmetaverse.googlecode.com/
  */
-require_once(BASEPATH . 'common/Curl.php');
-require_once(BASEPATH . 'common/ALT.php');
+require_once(COMMONPATH . 'Curl.php');
+require_once(COMMONPATH . 'ALT.php');
 
 function update_appearance($userID, $appearance)
 {

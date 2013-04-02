@@ -88,9 +88,7 @@ function webservice_post($url, $params, $jsonRequest = FALSE)
     $options = array();
     if ($jsonRequest)
     {
-        log_message('warn','encoding parameters');
         $params = json_encode($params);
-        log_message('warn',$params);
 	$options[CURLOPT_HTTPHEADER] = array('Content-Type: application/json');
     }
 

@@ -23,3 +23,4 @@ GridWebDAV/config/InstallerFinished_Simian_Grid_WebDAV
 # stupid Macs
 .DS_Store
 GridLogin/config/config.php
+Grid/config/config.php

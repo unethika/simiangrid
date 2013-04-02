@@ -171,36 +171,6 @@ $config['message_of_the_day'] = "@@MOTD@@";
 
 /*
 |--------------------------------------------------------------------------
-| Default Location
-|--------------------------------------------------------------------------
-|
-| Default location where users start if no other valid location is
-| specified
-|
-*/
-$config['default_location'] = "OpenSim Test/128/128/25";
-
-/*
-|--------------------------------------------------------------------------
-| Library Owner
-|--------------------------------------------------------------------------
-|
-| Configure a grid-wide asset library. If you specify the name or UUID of an
-| avatar, that avatar's inventory will be exported as the library. If no
-| library path is defined, the entire inventory will be exported. Otherwise,
-| just items in the path will be exported.
-|
-| Specifying the owner by uuid or the folder by uuid will improve 
-| performance marginally.
-|
-*/
-$config['library_owner_id'] = "ba2a564a-f0f1-4b82-9c61-b7520bfcd09f";
-//$config['library_owner_name'] = "Library TestUser";
-//$config['library_folder_id'] = "/Grid Library";
-//$config['library_folder_path'] = "";
-
-/*
-|--------------------------------------------------------------------------
 | Blacklisted Packets
 |--------------------------------------------------------------------------
 |
@@ -223,19 +193,6 @@ $config['udp_blacklist'] = "EnableSimulator,TeleportFinish,CrossedRegion";
 $config['sun_texture_id'] = "cce0f112-878f-4586-a2e2-a8f104bba271";
 $config['moon_texture_id'] = "d07f6eed-b96a-47cd-b51d-400ad4a1c428";
 $config['cloud_texture_id'] = "dc4b9f0b-d008-45c6-96a4-01dd947ac621";
-
-//whether to require email validation for login
-$config['validation_required'] = false;
-
-//User Access Level at which Users will not be blocked by
-//Either email validation or closed grids
-$config['access_level_minimum'] = 200;
-
-// Settings for appearance
-// These configuration variables give you some control over opensim versions
-// send_packedapp should be false to support older opensim versions
-$config['send_packedapp'] = true;
-$config['send_wearables'] = false;
 
 /*
 |--------------------------------------------------------------------------
