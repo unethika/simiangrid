@@ -311,6 +311,8 @@ function create_session($userID, $sessionID, $secureSessionID)
 /////////////////////////////////////////////////////////////////
 function lookup_scene_by_id($sceneID)
 {
+    log_message('info',"lookup scene by id: $sceneID");
+
     $config =& get_config();
     $gridService = $config['grid_service'];
 
@@ -328,12 +330,14 @@ function lookup_scene_by_id($sceneID)
 
 function lookup_scene_by_name($name)
 {
+    log_message('info',"lookup scene by name: $name");
+
     $config =& get_config();
     $gridService = $config['grid_service'];
 
     $response = webservice_post($gridService, array(
         'RequestMethod' => 'GetScene',
-        'NameQuery' => $name,
+        'Name' => $name,
         'Enabled' => '1')
     );
 
@@ -345,6 +349,8 @@ function lookup_scene_by_name($name)
 
 function lookup_scene_by_position($position, $findClosest = false)
 {
+    log_message('info',"lookup scene by position: " . $position->toOSD());
+
     $config =& get_config();
     $gridService = $config['grid_service'];
 

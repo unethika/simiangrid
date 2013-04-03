@@ -33,6 +33,8 @@
  * @link       http://openmetaverse.googlecode.com/
  */
 
+$gStartTime = microtime(true);
+
 define('COMMONPATH', str_replace("\\", "/", realpath(dirname(__FILE__) . '/..') . '/GridCommon/'));
 define('BASEPATH', str_replace("\\", "/", realpath(dirname(__FILE__)) . '/'));
 
@@ -47,6 +49,15 @@ require_once(COMMONPATH . 'SimianGrid.php');
 require_once(COMMONPATH . 'Scene.php');
 require_once(COMMONPATH . 'SceneLocation.php');
 require_once(COMMONPATH . 'Session.php');
+
+// Performance profiling/logging                                                                                                       
+function shutdown()
+{
+    global $gStartTime;
+    $elapsed = microtime(true) - $gStartTime;
+    log_message('debug', "Executed login in $elapsed seconds");
+}
+register_shutdown_function('shutdown');
 
 ///////////////////////////////////////////////////////////////////////////////
 // XML-RPC Server
