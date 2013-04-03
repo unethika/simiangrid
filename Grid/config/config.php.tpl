@@ -103,9 +103,10 @@ $config['inventory_driver'] = "ALT";
 |
 |	0 = Disables logging, Error logging TURNED OFF
 |	1 = Error Messages (including PHP errors)
-|   2 = Warning Messages
+|	2 = Warning Messages
 |	3 = Informational Messages
-|	4 = Debug Messages
+|	4 = Debug Messages, request times, response sizes
+|       5 = Dump Every Request
 |
 | For a live site you'll usually only enable Errors (1) to be logged otherwise
 | your log files will fill up very fast.
