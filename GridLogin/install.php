@@ -19,24 +19,11 @@
     $defaultDB['db'] = 'Simian';
     $defaultDB['password'] = '';
 
-    $dbCheckTables = array(
-        'AssetData',
-        'Capabilities',
-        'Generic',
-        'Identities',
-        'Inventory',
-        'Scenes',
-        'Sessions',
-        'UserData',
-        'Users',
-        'migrations'
-    );
+    $dbCheckTables = array( );
+    $dbSchemas = array();
+    $dbFixtures = array();
     
-    $dbSchemas = array('sql/');
-    
-    $dbFixtures = array('sql/default_assets.sql');
-    
-    $writableDirectories = array('logs', 'map');
+    $writableDirectories = array('logs');
     
     $configOptions['user_service']['name'] = "User Server";
     $configOptions['user_service']['description'] = "The URL of the User Server";
