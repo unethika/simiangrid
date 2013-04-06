@@ -9,9 +9,7 @@
     $requiredMysqlVersion = "5.0";
     $requiredModules = array(
         'curl',
-        'mysql',
         'hash',
-        'gd',
         'bcmath'
     );
     
@@ -20,24 +18,11 @@
     $defaultDB['db'] = 'Simian';
     $defaultDB['password'] = '';
 
-    $dbCheckTables = array(
-        'AssetData',
-        'Capabilities',
-        'Generic',
-        'Identities',
-        'Inventory',
-        'Scenes',
-        'Sessions',
-        'UserData',
-        'Users',
-        'migrations'
-    );
+    $dbCheckTables = array( );
+    $dbSchemas = array();
+    $dbFixtures = array();
     
-    $dbSchemas = array('sql/');
-    
-    $dbFixtures = array('sql/default_assets.sql');
-    
-    $writableDirectories = array('logs', 'map');
+    $writableDirectories = array('logs');
     
     $configOptions['user_service']['name'] = "User Server";
     $configOptions['user_service']['description'] = "The URL of the User Server";
@@ -69,6 +54,12 @@
     $configOptions['map_service']['string'] = "@@MAP_SERVICE@@";
     $configOptions['map_service']['file'] = "config/config.php";
     
+    $configOptions['motd']['name'] = "MOTD";
+    $configOptions['motd']['description'] = "Message which is displayed to users at login";
+    $configOptions['motd']['default'] = "Welcome to SimianGrid !";
+    $configOptions['motd']['string'] = "@@MOTD@@";
+    $configOptions['motd']['file'] = "config/config.php";
+
     require COMMONPATH . 'Installer/install.php';
 
 ?>

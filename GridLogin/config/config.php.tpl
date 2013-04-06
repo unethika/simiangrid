@@ -2,28 +2,6 @@
 
 /*
 |--------------------------------------------------------------------------
-| Database Connectivity Settings
-|--------------------------------------------------------------------------
-|
-| The settings needed to access your database
-|
-*/
-$config['db_hostname'] = "@@DB_HOST@@";
-$config['db_username'] = "@@DB_USER@@";
-$config['db_password'] = "@@DB_PASSWORD@@";
-$config['db_database'] = "@@DB_NAME@@";
-$config['db_driver'] = "mysql";
-$config['db_prefix'] = "";
-$config['db_persistent'] = TRUE;
-
-// This is the number of days between updates to LastAccess for Assets
-// and is useful if you want to clean up unused Assets from the Db
-// 0 turns off all updates and is the old behavior
-$config['access_update_interval'] = 0;
-
-
-/*
-|--------------------------------------------------------------------------
 | Service URLs
 |--------------------------------------------------------------------------
 |
@@ -56,45 +34,6 @@ $config['hypergrid_default_region'] = "OpenSim Test";
 
 /*
 |--------------------------------------------------------------------------
-| Asset Driver
-|--------------------------------------------------------------------------
-|
-| Select the inventory backend to use. Possible values:
-|   SQLAssets - Database-backed asset backend.
-|   MongoAssets - MongoDB-backed asset backend.
-|
-*/
-$config['asset_driver'] = "SQLAssets";
-//$config['asset_driver'] = "MongoAssets";
-//$config['asset_driver'] = "FSAssets";
-
-/* MongoDB server hostname and port number for the MongoAssets driver */
-$config['mongo_server'] = "localhost:27017";
-/* MongoDB database name */
-$config['mongo_database'] = "SimianGrid";
-
-/*
-| FSAssets stores the asset data on the local filesystem.
-| fsassets_path == where to store the asset data
-*/
-//$config['fsassets_path'] = "/srv/simiangrid/assets";
-
-/*
-|--------------------------------------------------------------------------
-| Inventory Driver
-|--------------------------------------------------------------------------
-|
-| Select the inventory backend to use. Possible values:
-|   ALT - Adjacency List Table. A simple and fast database-backed inventory
-|   MPTT - Modified Preorder Tree Table. An advanced database-backed
-|          inventory optimized for read access. WORK IN PROGRESS.
-|
-*/
-$config['inventory_driver'] = "ALT";
-//$config['inventory_driver'] = "MPTT";
-
-/*
-|--------------------------------------------------------------------------
 | Error Logging Threshold
 |--------------------------------------------------------------------------
 |
@@ -103,28 +42,15 @@ $config['inventory_driver'] = "ALT";
 |
 |	0 = Disables logging, Error logging TURNED OFF
 |	1 = Error Messages (including PHP errors)
-|	2 = Warning Messages
+|   2 = Warning Messages
 |	3 = Informational Messages
-|	4 = Debug Messages, request times, response sizes
-|       5 = Dump Every Request
+|	4 = Debug Messages
 |
 | For a live site you'll usually only enable Errors (1) to be logged otherwise
 | your log files will fill up very fast.
 |
 */
 $config['log_threshold'] = 1;
-
-/*
-|--------------------------------------------------------------------------
-| Map Tile Directory Path
-|--------------------------------------------------------------------------
-|
-| Leave this BLANK unless you would like to set something other than the default
-| map/ folder. Use a full server path with trailing slash. This directory should
-| map to the URL specified in $config['map_service'] above
-|
-*/
-$config["map_path"] = "";
 
 /*
 |--------------------------------------------------------------------------
@@ -162,12 +88,72 @@ $config['log_date_format'] = 'Y-m-d H:i:s';
 
 /*
 |--------------------------------------------------------------------------
-| Authorize Commands
+| Message of the Day
 |--------------------------------------------------------------------------
 |
-| Use capabilities to authorize commands, default is to authorize
-| all operations regardless of the capability provided
+| The message to return to clients on successful login
 |
 */
-$config['authorize_commands'] = false;
+$config['message_of_the_day'] = "Welcome to OpenSim!";
 
+/*
+|--------------------------------------------------------------------------
+| Default Location
+|--------------------------------------------------------------------------
+|
+| Default location where users start if no other valid location is
+| specified
+|
+*/
+$config['default_location'] = "OpenSim Test/128/128/25";
+
+/*
+|--------------------------------------------------------------------------
+| Blacklisted Packets
+|--------------------------------------------------------------------------
+|
+| A comma-separated list of server->client messages that may not be sent
+| over UDP on this grid. Do not modify this list unless you understand the
+| security implications
+|
+*/
+$config['udp_blacklist'] = "EnableSimulator,TeleportFinish,CrossedRegion";
+
+/*
+|--------------------------------------------------------------------------
+| Default Assets
+|--------------------------------------------------------------------------
+|
+| Default asset URLs for this grid. These assets must exist in the asset
+| service
+|
+*/
+$config['sun_texture_id'] = "cce0f112-878f-4586-a2e2-a8f104bba271";
+$config['moon_texture_id'] = "d07f6eed-b96a-47cd-b51d-400ad4a1c428";
+$config['cloud_texture_id'] = "dc4b9f0b-d008-45c6-96a4-01dd947ac621";
+
+/*
+|--------------------------------------------------------------------------
+| Library Owner
+|--------------------------------------------------------------------------
+|
+| Configure a grid-wide asset library. If you specify the name or UUID of an
+| avatar, that avatar's inventory will be exported as the library. If no
+| library path is defined, the entire inventory will be exported. Otherwise,
+| just items in the path will be exported.
+|
+| Specifying the owner by uuid or the folder by uuid will improve 
+| performance marginally.
+|
+*/
+$config['library_owner_id'] = "ba2a564a-f0f1-4b82-9c61-b7520bfcd09f";
+//$config['library_owner_name'] = "Library TestUser";
+//$config['library_folder_id'] = "/Grid Library";
+//$config['library_folder_path'] = "";
+
+//whether to require email validation for login
+$config['validation_required'] = false;
+
+//User Access Level at which Users will not be blocked by
+//Either email validation or closed grids
+$config['access_level_minimum'] = 200;

@@ -32,9 +32,9 @@
  * @license    http://www.debian.org/misc/bsd.license  BSD License (3 Clause)
  * @link       http://openmetaverse.googlecode.com/
  */
-require_once(BASEPATH . 'common/SQLAssets.php');
-//require_once(BASEPATH . 'common/MongoAssets.php');
-//require_once(BASEPATH . 'common/FSAssets.php');
+require_once(COMMONPATH . 'SQLAssets.php');
+//require_once(COMMONPATH . 'MongoAssets.php');
+//require_once(COMMONPATH . 'FSAssets.php');
 
 class AddAsset implements IGridService
 {

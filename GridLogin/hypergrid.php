@@ -34,22 +34,20 @@
  * @link       http://openmetaverse.googlecode.com/
  */
 
+define('COMMONPATH', str_replace("\\", "/", realpath(dirname(__FILE__) . '/..') . '/GridCommon/'));
 define('BASEPATH', str_replace("\\", "/", realpath(dirname(__FILE__)) . '/'));
 
-require_once(BASEPATH . 'common/Config.php');
-require_once(BASEPATH . 'common/Errors.php');
-require_once(BASEPATH . 'common/Log.php');
-require_once(BASEPATH . 'common/Interfaces.php');
-require_once(BASEPATH . 'common/UUID.php');
-require_once(BASEPATH . 'common/Vector3.php');
-require_once(BASEPATH . 'common/Curl.php');
-require_once(BASEPATH . 'common/SimianGrid.php');
-require_once(BASEPATH . 'common/Scene.php');
-require_once(BASEPATH . 'common/SceneLocation.php');
-require_once(BASEPATH . 'common/Session.php');
-
-define('LOGINPATH', BASEPATH . 'login/');
-require_once(LOGINPATH . 'lib/Class.Appearance.php');
+require_once(COMMONPATH . 'Config.php');
+require_once(COMMONPATH . 'Errors.php');
+require_once(COMMONPATH . 'Log.php');
+require_once(COMMONPATH . 'Interfaces.php');
+require_once(COMMONPATH . 'UUID.php');
+require_once(COMMONPATH . 'Vector3.php');
+require_once(COMMONPATH . 'Curl.php');
+require_once(COMMONPATH . 'SimianGrid.php');
+require_once(COMMONPATH . 'Scene.php');
+require_once(COMMONPATH . 'SceneLocation.php');
+require_once(COMMONPATH . 'Session.php');
 
 if ( !isset($_SERVER['REQUEST_METHOD']) || $_SERVER['REQUEST_METHOD'] != 'POST' ) {
     header("HTTP/1.1 400 Bad Request");
@@ -164,17 +162,12 @@ function bitShift($num1, $bits)
     return bcmul($num1, bcpow(2, $bits));
 }
 
-function ends_with($str, $sub)
-{
-   return (substr($str, strlen($str) - strlen($sub)) == $sub);
-}
-
 function hg_register_user($user_id, $username, $homeuri)
 {
     $config =& get_config();
 
     // only create the user if it doesn't already exist
-    if (get_user($user_id) != null)
+    if (get_user_by_id($user_id) != null)
         return true;
 
     log_message('info',"[hypergrid] creating new hypergrid user: $username");
@@ -391,7 +384,7 @@ function get_home_region($method_name, $params, $user_data)
     log_message('info', "get_home_region called with UserID $userID");
     
     // Fetch the user
-    $user = get_user($userID);
+    $user = get_user_by_id($userID);
     if (empty($user))
     {
         log_message('warn', "Unknown UserID $userID");

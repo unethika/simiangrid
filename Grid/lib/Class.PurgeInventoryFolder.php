@@ -32,7 +32,7 @@
  * @license    http://www.debian.org/misc/bsd.license  BSD License (3 Clause)
  * @link       http://openmetaverse.googlecode.com/
  */
-require_once(BASEPATH . 'common/ALT.php');
+require_once(COMMONPATH . 'ALT.php');
 
 class PurgeInventoryFolder implements IGridService
 {

@@ -34,9 +34,10 @@
  * @link       http://openmetaverse.googlecode.com/
  */
 
+define('COMMONPATH', str_replace("\\", "/", realpath(dirname(__FILE__) . '/..') . '/GridCommon/'));
 define('BASEPATH', str_replace("\\", "/", realpath(dirname(__FILE__)) . '/'));
 
-require_once(BASEPATH . 'common/Config.php');
+require_once(COMMONPATH . 'Config.php');
 
 function getRequestedTileName()
 {
