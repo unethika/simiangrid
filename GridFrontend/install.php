@@ -1,4 +1,5 @@
 <?php
+    define('COMMONPATH', str_replace("\\", "/", realpath(dirname(__FILE__) . '/..') . '/GridCommon/'));
     define("SIMIAN_INSTALLER", TRUE);
 
     define("NEED_PHP_VERSION", "5.3");
@@ -88,6 +89,6 @@
     $configOptions['base_url']['string'] = "@@BASE_URL@@";
     $configOptions['base_url']['file'] = "application/config/config.php";
 
-    require '../Installer/install.php';
+    require COMMONPATH . 'Installer/install.php';
 
 ?>

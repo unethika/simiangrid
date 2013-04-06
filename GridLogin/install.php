@@ -9,9 +9,7 @@
     $requiredMysqlVersion = "5.0";
     $requiredModules = array(
         'curl',
-        'mysql',
         'hash',
-        'gd',
         'bcmath'
     );
     
