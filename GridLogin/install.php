@@ -1,4 +1,5 @@
 <?php
+    define('COMMONPATH', str_replace("\\", "/", realpath(dirname(__FILE__) . '/..') . '/GridCommon/'));
     define("SIMIAN_INSTALLER", TRUE);
 
     define("NEED_PHP_VERSION", "5.3");
@@ -61,6 +62,6 @@
     $configOptions['motd']['string'] = "@@MOTD@@";
     $configOptions['motd']['file'] = "config/config.php";
 
-    require '../Installer/install.php';
+    require COMMONPATH . 'Installer/install.php';
 
 ?>

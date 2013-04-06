@@ -109,6 +109,31 @@ $config['default_location'] = "OpenSim Test/128/128/25";
 
 /*
 |--------------------------------------------------------------------------
+| Blacklisted Packets
+|--------------------------------------------------------------------------
+|
+| A comma-separated list of server->client messages that may not be sent
+| over UDP on this grid. Do not modify this list unless you understand the
+| security implications
+|
+*/
+$config['udp_blacklist'] = "EnableSimulator,TeleportFinish,CrossedRegion";
+
+/*
+|--------------------------------------------------------------------------
+| Default Assets
+|--------------------------------------------------------------------------
+|
+| Default asset URLs for this grid. These assets must exist in the asset
+| service
+|
+*/
+$config['sun_texture_id'] = "cce0f112-878f-4586-a2e2-a8f104bba271";
+$config['moon_texture_id'] = "d07f6eed-b96a-47cd-b51d-400ad4a1c428";
+$config['cloud_texture_id'] = "dc4b9f0b-d008-45c6-96a4-01dd947ac621";
+
+/*
+|--------------------------------------------------------------------------
 | Library Owner
 |--------------------------------------------------------------------------
 |

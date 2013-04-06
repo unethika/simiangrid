@@ -1,7 +1,5 @@
 <?php
     define('COMMONPATH', str_replace("\\", "/", realpath(dirname(__FILE__) . '/..') . '/GridCommon/'));
-    define('BASEPATH', str_replace("\\", "/", realpath(dirname(__FILE__)) . '/'));
-
     define("SIMIAN_INSTALLER", TRUE);
 
     define("NEED_PHP_VERSION", "5.3");
@@ -71,12 +69,6 @@
     $configOptions['map_service']['string'] = "@@MAP_SERVICE@@";
     $configOptions['map_service']['file'] = "config/config.php";
     
-    $configOptions['motd']['name'] = "MOTD";
-    $configOptions['motd']['description'] = "Message which is displayed to users at login";
-    $configOptions['motd']['default'] = "Welcome to SimianGrid !";
-    $configOptions['motd']['string'] = "@@MOTD@@";
-    $configOptions['motd']['file'] = "config/config.php";
-
-    require BASEPATH . 'Installer/install.php';
+    require COMMONPATH . 'Installer/install.php';
 
 ?>
