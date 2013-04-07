@@ -42,6 +42,16 @@ class GetSessions implements IGridService
     {
         $sql = "SELECT * FROM Sessions";
         
+        
+        if (isset($params["UserIDList"]))
+        {
+	    $ids = explode(',',$params["UserIDList"]);
+	    foreach ($ids as &$id)
+		$id = $db->quote($id);
+
+            $sql .= " WHERE UserID IN ( " . implode(',',$ids) . " )";
+        }
+
         $sth = $db->prepare($sql);
         if ($sth->execute())
         {
