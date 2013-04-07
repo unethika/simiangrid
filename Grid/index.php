@@ -77,7 +77,8 @@ $gDetailedLogging = $config['log_threshold'];
 if ($gDetailedLogging >= 4)
 {
     if ($gDetailedLogging >= 5)
-        log_message('debug', "Request: " . print_r($_POST, true));
+        //log_message('debug', "Request: " . print_r($_POST, true));
+	log_message('debug', "Request: " . json_encode($_POST));
     ob_start();
 }
 
