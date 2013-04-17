@@ -42,6 +42,9 @@ class GetAsset implements IGridService
     {
         $headrequest = (stripos($_SERVER['REQUEST_METHOD'], 'HEAD') !== FALSE);
         
+        $assetid = $asset->ID;
+        log_message('debug', "GetAsset asset: $assetid");
+
         $assets = new SQLAssets($db);
         //$assets = new MongoAssets($db);
         //$assets = new FSAssets($db);
@@ -57,7 +60,7 @@ class GetAsset implements IGridService
             $asset = $assets->GetAsset($asset->ID);
         }
         
-        log_message('debug', "GetAsset Requesting $request_type asset");
+        log_message('debug', "GetAsset requested $request_type information");
         
         if ($asset)
         {
