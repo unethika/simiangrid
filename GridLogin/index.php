@@ -327,7 +327,9 @@ function process_login($method_name, $params, $userID)
     $fullname = $user['Name'];
     if ( ! empty($user['UserFlags']) ) {
 
-        $userflags = json_decode($user['UserFlags'], TRUE);
+        // get_user_by_id() fully decodes the structure, this is not needed
+        //$userflags = json_decode($user['UserFlags'], TRUE);
+        $userflags = $user['UserFlags'];
         if ( ! empty($userflags['Suspended']) && (bool) $userflags['Suspended'] === true ) {
             $login_success = false;
             log_message('debug', "User " . $user['Name'] . " is banned.");
