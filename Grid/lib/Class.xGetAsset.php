@@ -1,6 +1,5 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-/**
- * Simian grid services
+<?php
+/** Simian grid services
  *
  * PHP version 5
  *
@@ -33,85 +32,45 @@
  * @license    http://www.debian.org/misc/bsd.license  BSD License (3 Clause)
  * @link       http://openmetaverse.googlecode.com/
  */
+require_once(COMMONPATH . 'SQLAssets.php');
+//require_once(COMMONPATH . 'MongoAssets.php');
+//require_once(COMMONPATH . 'FSAssets.php');
 
-interface IGridService
+class xGetAsset implements IGridService
 {
-    public function Execute($db, $request);
-}
-
-interface IPublicService
-{
-    public function Execute($request, &$response);
-}
-
-interface IOSD
-{
-    public function toOSD();
-    public static function fromOSD($strOsd);
-}
-
-class Asset
-{
-    public $ID;
-    public $CreatorID;
-    public $ContentLength;
-    public $ContentType;
-    public $CreationDate;
-    public $SHA256;
-    public $Temporary;
-    public $Public;
-    public $Data;
-}
-
-class MapTile
-{
-    public $X;
-    public $Y;
-    public $Data;
-}
-
-class Inventory
-{
-    public $ID;
-    public $ParentID;
-    public $OwnerID;
-    public $Name;
-    public $ContentType;
-    public $ExtraData;
-    public $CreationDate;
-    public $Type;
-}
-
-interface IAvatarInventoryFolder
-{
-    public function Folders();
-    public function Items();
-    public function Appearance();
-    public function Configure();
-}
-
-class AvatarInventoryFolderFactory
-{
-    public static function Create($type,$name,$userid)
+    public function Execute($db, $params)
     {
-        if (class_exists($type))
-            return new $type($name,$userid);
-    
-        $classFile = BASEPATH . 'avatar/Avatar.' . $type . '.php';
-        if (file_exists($classFile))
+        $asset = null;
+        $assetID = null;
+
+        if (isset($params["ID"]) && UUID::TryParse($params["ID"], $assetID))
         {
-            include_once $classFile;
-            return new $type($name,$userid);
+            log_message('debug', "xGetAsset asset: $assetID");
+
+            $assets = new SQLAssets($db);
+            $asset = $assets->GetAsset($assetID);
+        }
+        
+        if (! empty($asset))
+        {
+            $response = array();
+
+            $response['Success'] = 1;
+            $response['SHA256'] = $asset->SHA256;
+            $response['Last-Modified'] = gmdate(DATE_RFC850, $asset->CreationDate);
+            $response['CreatorID'] = $asset->CreatorID;
+            $response['ContentType'] = $asset->ContentType;
+            $response['EncodedData'] = base64_encode($asset->Data);
+
+            header("Content-Type: application/json", true);
+            echo json_encode($response);
+            exit();
         }
         else
         {
-            log_message('warn', "requested avatar $type not found, using default");
-    
-            $type = "DefaultAvatar";
-            $classFile = BASEPATH . 'avatar/Avatar.DefaultAvatar.php';
-
-            include_once $classFile;
-            return new $type($name,$userid);
+            header("HTTP/1.1 404 Not Found");
+            echo 'Asset not found';
+            exit();
         }
     }
 }
