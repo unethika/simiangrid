@@ -11,6 +11,8 @@ GridFrontend/system/logs/log-*.php
 #
 #Config Files
 Grid/config/config.php
+GridPublic/config/config.php
+GridLogin/config/config.php
 GridFrontend/application/config/config.php
 GridFrontend/application/config/database.php
 GridWebDAV/config/config.php
