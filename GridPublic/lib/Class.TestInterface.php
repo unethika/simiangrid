@@ -1,6 +1,5 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-/**
- * Simian grid services
+<?php
+/** Simian grid services
  *
  * PHP version 5
  *
@@ -34,84 +33,29 @@
  * @link       http://openmetaverse.googlecode.com/
  */
 
-interface IGridService
-{
-    public function Execute($db, $request);
-}
+// These should have been loaded already
+require_once(COMMONPATH . 'Config.php');
+require_once(COMMONPATH . 'Errors.php');
+require_once(COMMONPATH . 'Log.php');
+require_once(COMMONPATH . 'Interfaces.php');
+require_once(COMMONPATH . 'UUID.php');
+require_once(COMMONPATH . 'Vector3.php');
+require_once(COMMONPATH . 'Curl.php');
+require_once(COMMONPATH . 'Capability.php');
+require_once(COMMONPATH . 'SimianGrid.php');
 
-interface IPublicService
+class TestInterface implements IPublicService
 {
-    public function Execute($request);
-}
-
-interface IOSD
-{
-    public function toOSD();
-    public static function fromOSD($strOsd);
-}
-
-class Asset
-{
-    public $ID;
-    public $CreatorID;
-    public $ContentLength;
-    public $ContentType;
-    public $CreationDate;
-    public $SHA256;
-    public $Temporary;
-    public $Public;
-    public $Data;
-}
-
-class MapTile
-{
-    public $X;
-    public $Y;
-    public $Data;
-}
-
-class Inventory
-{
-    public $ID;
-    public $ParentID;
-    public $OwnerID;
-    public $Name;
-    public $ContentType;
-    public $ExtraData;
-    public $CreationDate;
-    public $Type;
-}
-
-interface IAvatarInventoryFolder
-{
-    public function Folders();
-    public function Items();
-    public function Appearance();
-    public function Configure();
-}
-
-class AvatarInventoryFolderFactory
-{
-    public static function Create($type,$name,$userid)
+    public function Execute($params)
     {
-        if (class_exists($type))
-            return new $type($name,$userid);
-    
-        $classFile = BASEPATH . 'avatar/Avatar.' . $type . '.php';
-        if (file_exists($classFile))
-        {
-            include_once $classFile;
-            return new $type($name,$userid);
-        }
-        else
-        {
-            log_message('warn', "requested avatar $type not found, using default");
-    
-            $type = "DefaultAvatar";
-            $classFile = BASEPATH . 'avatar/Avatar.DefaultAvatar.php';
+        log_message('warn',"test interface called");
 
-            include_once $classFile;
-            return new $type($name,$userid);
-        }
+        $result = array();
+        $result['Success'] = TRUE;
+        $result['Request'] = json_encode($params);
+
+        header("Content-Type: application/json", true);
+        echo json_encode($result);
+        exit();
     }
 }

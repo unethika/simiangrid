@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 /*
 |--------------------------------------------------------------------------
@@ -8,27 +8,29 @@
 | Enter the URL of each SimianGrid service below
 |
 */
+$config['user_service'] = "@@USER_SERVICE@@";
+$config['grid_service'] = "@@GRID_SERVICE@@";
+$config['asset_service'] = "@@ASSET_SERVICE@@";
+$config['inventory_service'] = "@@INVENTORY_SERVICE@@";
+$config['map_service'] = "@@MAP_SERVICE@@";
 
-$ExtHostName = gethostname();
-$IntHostName = "localhost";
-$RootPath = "Grid";
+/*
+|--------------------------------------------------------------------------
+| Hypergrid Service URLs
+|--------------------------------------------------------------------------
+|
+| By default these are equivalent to the service URLs. However, the host name
+| must be an external hostname. Override if you use "localhost" for your 
+| service URLs
+|
+*/
+$config['hg_user_service'] = $config['user_service'];
+$config['hg_asset_service'] = $config['asset_service'];
+$config['hg_inventory_service'] = $config['inventory_service'];
+$config['hypergrid_uri'] = $config['grid_service'] . 'hypergrid.php';
 
-// This attempts to find the path to the Grid directory
-$FullPath = substr(__FILE__,strlen($_SERVER['DOCUMENT_ROOT']));
-if (preg_match('/\/.*\/Grid\//',$FullPath,$matches))
-    $RootPath = trim($matches[0],'/');
-
-$config['user_service'] = "http://$IntHostName/$RootPath/";
-$config['grid_service'] = "http://$IntHostName/$RootPath/";
-$config['asset_service'] = "http://$IntHostName/$RootPath/?id=";
-$config['inventory_service'] = "http://$IntHostName/$RootPath/";
-$config['map_service'] = "http://$ExtHostName/$RootPath/map/";
-
-
-$config['hg_user_service'] = "http://$ExtHostName/$RootPath/";
-$config['hg_asset_service'] = "http://$ExtHostName/$RootPath/?id=";
-$config['hg_inventory_service'] = "http://$ExtHostName/$RootPath/";
-$config['hypergrid_uri'] = strtolower("http://$ExtHostName/$RootPath/hypergrid.php");
+//Default Region for HG
+$config['hypergrid_default_region'] = "OpenSim Test";
 
 /*
 |--------------------------------------------------------------------------
@@ -48,8 +50,7 @@ $config['hypergrid_uri'] = strtolower("http://$ExtHostName/$RootPath/hypergrid.p
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] = 5;
-//$config['log_threshold'] = 2;
+$config['log_threshold'] = 1;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,6 +64,19 @@ $config['log_threshold'] = 5;
 */
 $config["map_path"] = "";
 
+
+/*
+|--------------------------------------------------------------------------
+| Texture Directory Path
+|--------------------------------------------------------------------------
+|
+| Leave this BLANK unless you would like to set something other than the default
+| map/ folder. Use a full server path with trailing slash. This directory should
+| map to the URL specified in $config['map_service'] above
+|
+*/
+$config["texture_path"] = "";
+
 /*
 |--------------------------------------------------------------------------
 | Error Logging Directory Path
@@ -73,7 +87,6 @@ $config["map_path"] = "";
 |
 */
 $config['log_path'] = "";
-//$config['log_path'] = BASEPATH . 'logs/test/';
 
 /*
 |--------------------------------------------------------------------------

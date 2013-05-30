@@ -33,13 +33,115 @@
  * @link       http://openmetaverse.googlecode.com/
  */
 
+// These should have been loaded already
+require_once(COMMONPATH . 'Config.php');
+require_once(COMMONPATH . 'Errors.php');
+require_once(COMMONPATH . 'Log.php');
+require_once(COMMONPATH . 'Interfaces.php');
+require_once(COMMONPATH . 'UUID.php');
+require_once(COMMONPATH . 'Vector3.php');
+require_once(COMMONPATH . 'Curl.php');
+require_once(COMMONPATH . 'Capability.php');
+require_once(COMMONPATH . 'SimianGrid.php');
+
 class GetTexture implements IPublicService
 {
-    public function Execute($params, &$result)
+    // -----------------------------------------------------------------
+    private function GetRange($datalen)
     {
-        $result = array();
-        $result['YES'] = 'made it';
+        $range = array(0,$datalen-1);
+        
+        if (! empty($_SERVER['HTTP_RANGE']))
+        {
+            if (preg_match('/bytes=([0-9]+)-([0-9]+)/',$_SERVER['HTTP_RANGE'],$rmatches))
+            {
+                $range[0] = $rmatches[1];
+                $range[1] = $rmatches[2];
+            }
+            else
+                log_message('warn','invalid range specification; ' . $_SERVER['HTTP_RANGE']);
+        }
+        else
+            log_message('warn','no range specification provided');
 
-        return $result;
+        // should add a few more sanity checks here...
+        if ($range[1] >= $datalen)
+            $range[1] = $datalen - 1;
+
+        return $range;
+    }        
+        
+    // -----------------------------------------------------------------
+    private function SendTextureFile($id,$file)
+    {
+        $datalen = filesize($file);
+        $datarange = $this->GetRange($datalen);
+        $sendlen = $datarange[1] - $datarange[0] + 1;
+
+        // From OpenSim code... we send this anyway
+        header("HTTP/1.1 206 Partial Content");
+        header('Accept-Ranges: bytes');
+        header('Content-Range: bytes '. $datarange[0] . '-' . $datarange[1] . '/' . $datalen);
+        header("Content-Type: image/x-j2c");
+        header("Content-Length: " . $sendlen);
+
+        $handle = fopen($file,"rb");
+        flock($handle,LOCK_SH); /* readers lock */
+
+        fseek($handle,$datarange[0]);
+        print(fread($handle, $sendlen));
+
+        flock($handle,LOCK_UN);
+        fclose($handle);
+
+        log_message('debug',sprintf('[GetTexture] sent range %d-%d/%d from %s',$datarange[0],$datarange[1],$datalen,$id));
+        exit();
+    }
+
+    // -----------------------------------------------------------------
+    public function Execute($params)
+    {
+        $config =& get_config();
+        $texturedir = $config['texture_path'];
+
+
+        if (! isset($params["texture_id"]) || !UUID::TryParse($params["texture_id"], $assetID))
+            RequestFailed('invalid or missing texture identifier');
+
+        $texturefile = $texturedir . $assetID;
+
+        log_message('debug', "[GetTexture] assetID=$assetID");
+
+        // Check to see if we already have the texture
+        if (! file_exists($texturefile))
+        {
+            // There is definitely a race condition here, the time between the check for an existing
+            // file and acquiring a lock opens up the potential for overwriting the file
+            $handle = fopen($texturefile,"wb");
+            if (! flock($handle, LOCK_EX))
+                RequestFailed('unable to acquire lock on cache file');
+
+            // Pull it back from the asset service and store it locally
+            if (! get_asset($assetID,$assetInfo))
+                RequestFailed('asset not found');
+
+            if ($assetInfo['ContentType'] != 'image/x-j2c')
+                RequestFailed(sprintf('wrong asset type; %s',$assetInfo['ContentType']));
+
+            if (! fwrite($handle,$assetInfo['Content']))
+            {
+                flock($handle,LOCK_UN);
+                fclose($handle);
+                unlink($texturefile);
+
+                log_message('error','write to file failed');
+                RequestFailed('unable to write cache file');
+            }
+
+            flock($handle,LOCK_UN);
+            fclose($handle);
+        }
+
+        $this->SendTextureFile($assetID,$texturefile);
     }
 }

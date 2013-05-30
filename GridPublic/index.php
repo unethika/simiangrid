@@ -58,7 +58,7 @@ function shutdown()
     global $gStartTime, $gMethodName, $gDetailedLogging;
     $elapsed = microtime(true) - $gStartTime;
 
-    if ($gDetailedLogging >= 4)
+    if ($gDetailedLogging >= 5)
     {
         $obsize = ob_get_length();
         ob_end_flush();
@@ -76,13 +76,8 @@ register_shutdown_function('shutdown');
 // Common error response
 function RequestFailed($msg)
 {
-    header("Content-Type: application/json", true);
-
-    $result = array();
-    $result['Success'] = FALSE;
-    $result['Message'] = $msg;
-    echo json_encode($result);
-
+    header("HTTP/1.1 400 Bad Request");
+    echo $msg;
     exit();
 }
 
@@ -95,13 +90,10 @@ function RequestFailed($msg)
 $config =& get_config();
 
 $gDetailedLogging = $config['log_threshold'];
-if ($gDetailedLogging >= 4)
+if ($gDetailedLogging >= 5)
 {
-    if ($gDetailedLogging >= 5)
-    {
-	log_message('debug', "Request: " . json_encode($_REQUEST));
-	log_message('debug', "Headers: " . json_encode(apache_request_headers()));
-    }
+    log_message('debug', "Request: " . json_encode($_REQUEST));
+    log_message('debug', "Headers: " . json_encode(apache_request_headers()));
 
     ob_start();
 }
@@ -121,8 +113,8 @@ if (get_magic_quotes_gpc())
     array_walk_recursive($_REQUEST, 'stripslashes_gpc');
 }
 
-log_message('debug', 'script name is ' . $_SERVER["PHP_SELF"]);
-log_message('debug', 'full uri is ' . $_SERVER["REQUEST_URI"]);
+//log_message('debug', 'script name is ' . $_SERVER["PHP_SELF"]);
+//log_message('debug', 'full uri is ' . $_SERVER["REQUEST_URI"]);
 
 // -----------------------------------------------------------------
 // Extract the capability and operation from the request
@@ -131,18 +123,28 @@ $capability = null;
 $operation = null;
 $request = null;
 
+$cappattern='@^/GridPublic/CAP/([^/]+)/([^/]+)/?(\?.*)?$@';
+$nocappattern='@^/GridPublic/([^/]+)/?(\?.*)?$@';
+
 if ($_SERVER['REQUEST_METHOD'] == 'GET')
 {
-    $cappattern='@^/GridPublic/CAP/([^/]+)/([^/]+)/?(\?.*)?$@';
-    if (! preg_match($cappattern,$_SERVER["REQUEST_URI"],$capmatches))
+    $requestURI = preg_replace('@/+@','/',$_SERVER["REQUEST_URI"]);
+    if (preg_match($cappattern,$requestURI,$capmatches))
     {
-        log_message('warn', 'Invalid request: ' . $_SERVER["REQUEST_URI"]);
+        $capability = $capmatches[1];
+        $operation = $capmatches[2];
+        $request = $_REQUEST;
+    }
+    else if (preg_match($nocappattern,$requestURI,$capmatches))
+    {
+        $operation = $capmatches[1];
+        $request = $_REQUEST;
+    }
+    else
+    {
+        log_message('warn', 'Invalid request: ' . $requestURI);
         RequestFailed('Invalid request format');
     }
-
-    $capability = $capmatches[1];
-    $operation = $capmatches[2];
-    $request = $_REQUEST;
 }
 else if ($_SERVER['REQUEST_METHOD'] == 'POST')
 {
@@ -191,7 +193,7 @@ if (!empty($config['authorize_commands']))
         RequestFailed('Invalid capability');
     }
 
-    log_message('debug',sprintf("Capability=%s",json_encode($cap)));
+    // log_message('debug',sprintf("Capability=%s",json_encode($cap)));
 }
 
 // execute_command($operation, $capability, $request);
@@ -199,21 +201,10 @@ if (file_exists(BASEPATH . "lib/Class.$operation.php"))
 {
     if (include_once(BASEPATH . "lib/Class.$operation.php"))
     {
+        $gMethodName = $operation;
         $instance = new $operation();
-        if ($instance->Execute($request,$response))
-        {
-            $result = array();
-            $result['Success'] = TRUE;
-            $result['Capability'] = $capability;
-            $result['Operation'] = $operation;
-            $result['Response'] = json_encode($response);
-
-            header("Content-Type: application/json", true);
-            echo json_encode($result);
-            exit();
-        }
-
-        RequestFailed($response['Message']);
+        $instance->Execute($request);
+        exit();
     }
 }
 
