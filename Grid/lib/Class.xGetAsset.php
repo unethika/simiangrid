@@ -51,26 +51,26 @@ class xGetAsset implements IGridService
             $asset = $assets->GetAsset($assetID);
         }
         
+        $response = array();
+
         if (! empty($asset))
         {
-            $response = array();
-
-            $response['Success'] = 1;
+            $response['Success'] = TRUE;
             $response['SHA256'] = $asset->SHA256;
             $response['Last-Modified'] = gmdate(DATE_RFC850, $asset->CreationDate);
             $response['CreatorID'] = $asset->CreatorID;
             $response['ContentType'] = $asset->ContentType;
+            $response['ContentLength'] = $asset->ContentLength;
             $response['EncodedData'] = base64_encode($asset->Data);
-
-            header("Content-Type: application/json", true);
-            echo json_encode($response);
-            exit();
         }
         else
         {
-            header("HTTP/1.1 404 Not Found");
-            echo 'Asset not found';
-            exit();
+            $response['Success'] = FALSE;
+            $response['Message'] = 'Asset not found';
         }
+
+        header("Content-Type: application/json", true);
+        echo json_encode($response);
+        exit();
     }
 }
