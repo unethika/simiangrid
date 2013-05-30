@@ -404,8 +404,57 @@ function refresh_map_tile($x, $y, $regionImage)
 /////////////////////////////////////////////////////////////////
 // Asset Functions
 /////////////////////////////////////////////////////////////////
-function get_asset($assetID)
+function get_asset($assetID, &$assetData)
 {
+    // We use the grid service here because we don't want the
+    // asset specific handling that comes from the asset service
+    $config =& get_config();
+    $service = $config['grid_service'];
+
+    $response = webservice_post($service, array(
+        'RequestMethod' => 'xGetAsset',
+        'ID' => $assetID));
+
+    if (! empty($response['Success']))
+    {
+        $assetData = array();
+        $assetData['SHA256'] = $response['SHA256'];
+        $assetData['Last-Modified'] = $response['Last-Modified'];
+        $assetData['CreatorID'] = $response['CreatorID'];
+        $assetData['ContentType'] = $response['ContentType'];
+        $assetData['Content'] = base64_decode($response['EncodedData']);
+
+        return true;
+    }
+
+    $assetData = null;
+    return false;
+}
+
+function get_assetmetadata($assetID, &$assetData)
+{
+    // We use the grid service here because we don't want the
+    // asset specific handling that comes from the asset service
+    $config =& get_config();
+    $service = $config['grid_service'];
+
+    $response = webservice_post($service, array(
+        'RequestMethod' => 'xGetAssetMetadata',
+        'ID' => $assetID));
+
+    if (! empty($response['Success']))
+    {
+        $assetData = array();
+        $assetData['SHA256'] = $response['SHA256'];
+        $assetData['Last-Modified'] = $response['Last-Modified'];
+        $assetData['CreatorID'] = $response['CreatorID'];
+        $assetData['ContentType'] = $response['ContentType'];
+
+        return true;
+    }
+
+    $assetData = null;
+    return false;
 }
 
 /////////////////////////////////////////////////////////////////
