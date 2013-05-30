@@ -92,8 +92,8 @@ $config =& get_config();
 $gDetailedLogging = $config['log_threshold'];
 if ($gDetailedLogging >= 5)
 {
-    log_message('debug', "Request: " . json_encode($_REQUEST));
-    log_message('debug', "Headers: " . json_encode(apache_request_headers()));
+    //log_message('debug', "Request: " . json_encode($_REQUEST));
+    //log_message('debug', "Headers: " . json_encode(apache_request_headers()));
 
     ob_start();
 }
@@ -175,7 +175,7 @@ else if ($_SERVER['REQUEST_METHOD'] == 'POST')
     $operation = trim($request['RequestMethod']);
 }
 
-log_message('debug',sprintf("cap=%s, op=%s",$capability,$operation));
+log_message('debug',sprintf("cap=%s, op=%s, request=%s",$capability,$operation,json_encode($request)));
 
 // --------------- validate the capability ---------------
 if (!empty($config['authorize_commands']))

@@ -76,6 +76,8 @@ $config["map_path"] = "";
 |
 */
 $config["texture_path"] = "";
+$config["texture_split_size"] = 2;
+$config["texture_split_depth"] = 2;
 
 /*
 |--------------------------------------------------------------------------

@@ -47,6 +47,37 @@ require_once(COMMONPATH . 'SimianGrid.php');
 class GetTexture implements IPublicService
 {
     // -----------------------------------------------------------------
+    private function ComputeTextureFile($id)
+    {
+        $config =& get_config();
+
+        $texturedir = BASEPATH . 'textures';
+        if (! empty($config['texture_path']))
+            $texturedir = $config['texture_path'];
+
+        $splitsize = 2;
+        if (! empty($config['texture_split_size']))
+            $splitsize = $config['texture_split_size'];
+        
+        $splitdepth = 2;
+        if (! empty($config['texture_split_depth']))
+            $splitsize = $config['texture_split_depth'];
+        
+        $texturedir = $texturedir . "/";
+        for ($i = 0; $i < $splitdepth; $i++)
+        {
+            $texturedir = $texturedir . substr($id,$i*$splitsize,$splitsize) . '/';
+            if (! file_exists($texturedir))
+                mkdir($texturedir,0775);
+        }
+
+        // log_message('warn',"texture file is " . $texturedir . $id);
+
+        // And return the path
+        return $texturedir . $id;
+    }
+
+    // -----------------------------------------------------------------
     private function GetRange($datalen)
     {
         $range = array(0,$datalen-1);
@@ -101,16 +132,10 @@ class GetTexture implements IPublicService
     // -----------------------------------------------------------------
     public function Execute($params)
     {
-        $config =& get_config();
-        $texturedir = $config['texture_path'];
-
-
         if (! isset($params["texture_id"]) || !UUID::TryParse($params["texture_id"], $assetID))
             RequestFailed('invalid or missing texture identifier');
 
-        $texturefile = $texturedir . $assetID;
-
-        log_message('debug', "[GetTexture] assetID=$assetID");
+        $texturefile = $this->ComputeTextureFile($assetID);
 
         // Check to see if we already have the texture
         if (! file_exists($texturefile))
@@ -119,14 +144,33 @@ class GetTexture implements IPublicService
             // file and acquiring a lock opens up the potential for overwriting the file
             $handle = fopen($texturefile,"wb");
             if (! flock($handle, LOCK_EX))
+            {
+                fclose($handle);
+                unlink($texturefile);
+
                 RequestFailed('unable to acquire lock on cache file');
+            }
 
             // Pull it back from the asset service and store it locally
             if (! get_asset($assetID,$assetInfo))
+            {
+                flock($handle,LOCK_UN);
+                fclose($handle);
+                unlink($texturefile);
+
+                log_message('error',"[GetTexture] asset $assetID not found");
                 RequestFailed('asset not found');
+            }
 
             if ($assetInfo['ContentType'] != 'image/x-j2c')
+            {
+                flock($handle,LOCK_UN);
+                fclose($handle);
+                unlink($texturefile);
+
+                log_message('error',sprintf('[GetTexture] wrong asset type; %s',$assetInfo['ContentType']));
                 RequestFailed(sprintf('wrong asset type; %s',$assetInfo['ContentType']));
+            }
 
             if (! fwrite($handle,$assetInfo['Content']))
             {
@@ -134,7 +178,7 @@ class GetTexture implements IPublicService
                 fclose($handle);
                 unlink($texturefile);
 
-                log_message('error','write to file failed');
+                log_message('error','[GetTexture] write to file failed');
                 RequestFailed('unable to write cache file');
             }
 
