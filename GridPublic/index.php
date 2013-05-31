@@ -123,8 +123,8 @@ $capability = null;
 $operation = null;
 $request = null;
 
-$cappattern='@^/GridPublic/CAP/([^/]+)/([^/]+)/?(\?.*)?$@';
-$nocappattern='@^/GridPublic/([^/]+)/?(\?.*)?$@';
+$cappattern='@^/GridPublic/CAP/([^/?]+)/([^/]+)/?(\?.*)?$@';
+$nocappattern='@^/GridPublic/([^/?]+)/?(\?.*)?$@';
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET')
 {
