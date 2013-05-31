@@ -46,6 +46,8 @@ require_once(COMMONPATH . 'SimianGrid.php');
 
 class GetTexture implements IPublicService
 {
+    private static $TextureTypes = array("image/x-j2c" => 1, "image/jp2" => 1);
+
     // -----------------------------------------------------------------
     private function ComputeTextureFile($id)
     {
@@ -68,7 +70,17 @@ class GetTexture implements IPublicService
         {
             $texturedir = $texturedir . substr($id,$i*$splitsize,$splitsize) . '/';
             if (! file_exists($texturedir))
-                mkdir($texturedir,0775);
+            {
+                // the '@' should suppress errors.. we really don't care if it fails so long 
+                // as the directory exists, there is definitely a race condition but a fail
+                // is ok since this condition can only happen on first access to a texture
+                if (! @mkdir($texturedir,0775))
+                {
+                    // This error happens during a race condition for creating a directory
+                    // For the moment, just log it and ignore
+                    log_message('error','[GetTexture] Caught exception in mkdir;');
+                }
+            }
         }
 
         // log_message('warn',"texture file is " . $texturedir . $id);
@@ -90,10 +102,10 @@ class GetTexture implements IPublicService
                 $range[1] = $rmatches[2];
             }
             else
-                log_message('warn','invalid range specification; ' . $_SERVER['HTTP_RANGE']);
+                log_message('warn','[GetTexture] invalid range specification; ' . $_SERVER['HTTP_RANGE']);
         }
         else
-            log_message('warn','no range specification provided');
+            log_message('warn','[GetTexture] no range specification provided');
 
         // should add a few more sanity checks here...
         if ($range[1] >= $datalen)
@@ -105,6 +117,9 @@ class GetTexture implements IPublicService
     // -----------------------------------------------------------------
     private function SendTextureFile($id,$file)
     {
+        $handle = fopen($file,"rb");
+        flock($handle,LOCK_SH); /* readers lock */
+
         $datalen = filesize($file);
         $datarange = $this->GetRange($datalen);
         $sendlen = $datarange[1] - $datarange[0] + 1;
@@ -115,9 +130,6 @@ class GetTexture implements IPublicService
         header('Content-Range: bytes '. $datarange[0] . '-' . $datarange[1] . '/' . $datalen);
         header("Content-Type: image/x-j2c");
         header("Content-Length: " . $sendlen);
-
-        $handle = fopen($file,"rb");
-        flock($handle,LOCK_SH); /* readers lock */
 
         fseek($handle,$datarange[0]);
         print(fread($handle, $sendlen));
@@ -162,7 +174,7 @@ class GetTexture implements IPublicService
                 RequestFailed('asset not found');
             }
 
-            if ($assetInfo['ContentType'] != 'image/x-j2c')
+            if (empty(self::$TextureTypes[$assetInfo['ContentType']]))
             {
                 flock($handle,LOCK_UN);
                 fclose($handle);

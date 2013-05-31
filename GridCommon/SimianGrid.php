@@ -406,6 +406,8 @@ function refresh_map_tile($x, $y, $regionImage)
 /////////////////////////////////////////////////////////////////
 function get_asset($assetID, &$assetData)
 {
+    log_message('info',"get_asset: " . $assetID);
+
     // We use the grid service here because we don't want the
     // asset specific handling that comes from the asset service
     $config =& get_config();
@@ -433,6 +435,8 @@ function get_asset($assetID, &$assetData)
 
 function get_assetmetadata($assetID, &$assetData)
 {
+    log_message('info',"get_assetmetadata: " . $assetID);
+
     // We use the grid service here because we don't want the
     // asset specific handling that comes from the asset service
     $config =& get_config();
