@@ -62,6 +62,7 @@ class xGetAsset implements IGridService
             $response['ContentType'] = $asset->ContentType;
             $response['ContentLength'] = $asset->ContentLength;
             $response['EncodedData'] = base64_encode($asset->Data);
+	    $response['Temporary'] = $asset->Temporary;
         }
         else
         {

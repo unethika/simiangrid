@@ -77,9 +77,9 @@ class xAddAsset implements IGridService
             $asset->Data = base64_decode($params["EncodedData"]);
             $asset->SHA256 = hash("sha256",$asset->Data);
             $asset->ContentLength = strlen($asset->Data);
-            $asset->ContentType = $params["ContentTYpe"];
-            $asset->Temporary = ! isempty($params["Temporary"]);
-            $asset->Public = ! isempty($params["Public"]);
+            $asset->ContentType = $params["ContentType"];
+            $asset->Temporary = ! empty($params["Temporary"]);
+            $asset->Public = ! empty($params["Public"]);
 
             $assets = new SQLAssets($db);
 

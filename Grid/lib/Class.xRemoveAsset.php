@@ -36,38 +36,34 @@ require_once(COMMONPATH . 'SQLAssets.php');
 //require_once(COMMONPATH . 'MongoAssets.php');
 //require_once(COMMONPATH . 'FSAssets.php');
 
-class xGetAssetMetadata implements IGridService
+class xRemoveAsset implements IGridService
 {
     public function Execute($db, $params)
     {
-        $asset = null;
+	$response = array();
+
         $assetID = null;
-
-        if (isset($params["ID"]) && UUID::TryParse($params["ID"], $assetID))
+	if (!isset($params["AssetID"]) || !UUID::TryParse($params["AssetID"],$assetID))
         {
-            log_message('debug', "xGetAssetMetadata asset: $assetID");
-
-            $assets = new SQLAssets($db);
-            $asset = $assets->GetAsset($assetID);
-        }
+	    $response['Success'] = FALSE;
+	    $response['Message'] = 'missing required parameters';
+	}
+	else
+	{
+	    $assets = new SQLAssets($db);
+	    //$assets = new MongoAssets($db);
+	    //$assets = new FSAssets($db);
         
-        $response = array();
-
-        if (! empty($asset))
-        {
-            $response['Success'] = TRUE;
-            $response['SHA256'] = $asset->SHA256;
-            $response['Last-Modified'] = gmdate(DATE_RFC850, $asset->CreationDate);
-            $response['CreatorID'] = $asset->CreatorID;
-            $response['ContentType'] = $asset->ContentType;
-            $response['ContentLength'] = $asset->ContentLength;
-	    $response['Temporary'] = $asset->Temporary;
-        }
-        else
-        {
-            $response['Success'] = FALSE;
-            $response['Message'] = 'Asset not found';
-        }
+	    if ($assets->RemoveAsset($assetID))
+	    {
+		$response['Success'] = TRUE;
+	    }
+	    else
+	    {
+		$response['Success'] = FALSE;
+		$response['Message'] = 'failed to remove the asset';
+	    }
+	}
 
         header("Content-Type: application/json", true);
         echo json_encode($response);
