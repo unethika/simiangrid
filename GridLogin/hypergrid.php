@@ -83,13 +83,28 @@ if ( isset($_SERVER['PATH_INFO'] ) ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 $xmlrpc_server = xmlrpc_server_create();
+
+// Gatekeeper
 xmlrpc_server_register_method($xmlrpc_server, "link_region", "link_region");
 xmlrpc_server_register_method($xmlrpc_server, "get_region", "get_region");
+
+//
 xmlrpc_server_register_method($xmlrpc_server, "get_home_region", "get_home_region");
 xmlrpc_server_register_method($xmlrpc_server, "verify_client", "verify_client");
 xmlrpc_server_register_method($xmlrpc_server, "verify_agent", "verify_agent");
 xmlrpc_server_register_method($xmlrpc_server, "logout_agent", "logout_agent");
 xmlrpc_server_register_method($xmlrpc_server, "agent_is_coming_home", "agent_is_coming_home");
+xmlrpc_server_register_method($xmlrpc_server, "get_uui", "get_uui");
+
+// These are for friends, handle later
+// status_notification
+// get_online_friends
+// get_user_info
+// locate_user
+
+xmlrpc_server_register_method($xmlrpc_server, "get_uuid", "get_uuid");
+xmlrpc_server_register_method($xmlrpc_server, "get_server_urls", "get_server_urls");
+
 
 $request_xml = file_get_contents("php://input");
 
@@ -275,8 +290,17 @@ function hg_login($gatekeeper_uri, $userid, $raw_osd)
     log_message('debug',"[hypergrid] login $userid to $uri with parameters: " . $raw_osd);
 
     $success = false;
+    $options = array();
+    $options['HTTPHEADER'] = array('Content-Type: application/json');
+
     $curl = new Curl();
-    $response_raw = $curl->simple_post($uri, $raw_osd);
+    $response_raw = $curl->simple_post($uri, $raw_osd, $options);
+    if (empty($response_raw))
+    {
+	log_message('warn', '[hypergrid] hg_login failed, no response from server');
+	return false;
+    }
+
     log_message('debug', 'foreignagent returned ' . $response_raw);
 
     $response = json_decode($response_raw, TRUE);
@@ -515,6 +539,54 @@ function agent_is_coming_home($method_name, $params, $user_data)
     return $response;
 }
 
+function get_uui($method_name, $params, $user_data)
+{
+    log_message('info', "[hypergrid] $method_name called");
+
+    $response = array();
+    $req = $params[0];
+    $userID = $req['userID'];
+    $targetID = $req['targetUserID'];
+
+    return $response;
+}
+
+function get_uuid($method_name, $params, $user_data)
+{
+    log_message('info', "[hypergrid] $method_name called");
+
+    $response = array();
+    $req = $params[0];
+    $fname = $req['first'];
+    $lname = $req['last'];
+
+    log_message('info', "[hypergrid] get_uuid with $fname and $lname");
+    
+    $user = get_user_by_name("$fname $lname");
+    $response['UUID'] = $user['UserID'];
+    return $response;
+}
+
+function get_server_urls($method_name, $params, $user_data)
+{
+    log_message('info', "[hypergrid] $method_name called");
+
+    $response = array();
+    $req = $params[0];
+
+    
+    $userID = $req['userID'];
+
+    // SRV_InventoryServerURI
+    // SRV_AssetServerURI
+    // SRV_ProfileServerURI
+    // SRV_FriendsServerURI
+    // SRV_IMServerURI
+    $response[''] = "";
+
+    return $response;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Home and ForeignAgent Handlers
 ///////////////////////////////////////////////////////////////////////////////
@@ -581,7 +653,10 @@ function foreignagent_handler($path_tail, $data)
     log_message('info',"[hypergrid] create session for $username");
     create_session($userid, $session_id, $secure_session_id);
     
-    $result = create_opensim_presence_full($scene->Address, $dest_name, $dest_uuid, $dest_x, $dest_y, $userid, $circuit_code, $username, $appearance, $session_id, $secure_session_id, $start_pos, $caps_path, $client_ip, $osd['serviceurls'], 1073741824, $service_session_id);
+    $result = create_opensim_presence_full($scene->Address, $dest_name, $dest_uuid, $dest_x, $dest_y,
+					   $userid, $circuit_code, $username, $appearance, $session_id, $secure_session_id, $start_pos,
+					   $caps_path, $client_ip, $osd['serviceurls'], 1073741824, $service_session_id,
+					   $seedCaps);
     
     echo '{"success": ' . $result . ', "reason": "no reason set lol", "your_ip": "' . $_SERVER['REMOTE_ADDR'] . '"}';
     exit();
