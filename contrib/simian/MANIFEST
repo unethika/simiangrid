@@ -1,0 +1,13 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+lib/Simian.pm
+lib/Helper/CommandInfo.pm
+bin/avatargen.pl
+bin/capadmin.pl
+bin/invadmin.pl
+bin/sceneadmin.pl
+bin/simtest.pl
+bin/useradmin.pl
+
