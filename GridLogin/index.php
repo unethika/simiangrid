@@ -401,8 +401,8 @@ function process_login($method_name, $params, $userID)
     // Create a login session
     $sessionID = null;
     $secureSessionID = null;
-    
-    if (! add_session($userID, $sessionID, $secureSessionID))
+    $extradata = array('ClientIP' => $_SERVER['REMOTE_ADDR']);
+    if (! add_session($userID, $sessionID, $secureSessionID, $extradata))
     {
         return array('reason' => 'presence', 'login' => 'false',
             'message' => "Failed to create a login session. Please try again later.");

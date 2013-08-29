@@ -38,22 +38,36 @@ class AddSession implements IGridService
     private $UserID;
     private $SessionID;
     private $SecureSessionID;
-
+    private $ExtraData;
+    
     public function Execute($db, $params)
     {
         if (isset($params["UserID"]) && UUID::TryParse($params["UserID"], $this->UserID))
         {
+            if (isset($params["ExtraData"]))
+            {
+                $this->ExtraData = $params["ExtraData"];
+            }
+            else
+            {
+                $this->ExtraData = NULL;
+            }
+
             if (isset($params["SessionID"], $params["SecureSessionID"]) &&
                 UUID::TryParse($params['SessionID'], $this->SessionID) && UUID::TryParse($params['SecureSessionID'], $this->SecureSessionID))
             {
                 // Creating or updating a user session
-                $sql = "INSERT INTO Sessions (UserID, SessionID, SecureSessionID, SceneID, ScenePosition, SceneLookAt)
-                        VALUES (:UserID, :SessionID, :SecureSessionID, '00000000-0000-0000-0000-000000000000', '<0, 0, 0>', '<0, 0, 0>')
+                $sql = "INSERT INTO Sessions (UserID, SessionID, SecureSessionID, ExtraData, SceneID, ScenePosition, SceneLookAt)
+                        VALUES (:UserID, :SessionID, :SecureSessionID, :ExtraData, '00000000-0000-0000-0000-000000000000', '<0, 0, 0>', '<0, 0, 0>')
                         ON DUPLICATE KEY UPDATE SessionID=VALUES(SessionID), SecureSessionID=VALUES(SecureSessionID)";
                 
                 $sth = $db->prepare($sql);
                 
-                if ($sth->execute(array(':UserID' => $this->UserID, ':SessionID' => $this->SessionID, ':SecureSessionID' => $this->SecureSessionID)))
+                if ($sth->execute(array(
+                    ':UserID' => $this->UserID,
+                    ':SessionID' => $this->SessionID,
+                    ':SecureSessionID' => $this->SecureSessionID,
+                    ':ExtraData' => $this->ExtraData)))
                 {
                     if ($sth->rowCount() > 0)
                     {
@@ -86,12 +100,16 @@ class AddSession implements IGridService
                 $this->SessionID = UUID::Random();
                 $this->SecureSessionID = UUID::Random();
                 
-                $sql = "INSERT INTO Sessions (UserID, SessionID, SecureSessionID, SceneID, ScenePosition, SceneLookAt)
-                        VALUES (:UserID, :SessionID, :SecureSessionID, '00000000-0000-0000-0000-000000000000', '<0, 0, 0>', '<0, 0, 0>')";
+                $sql = "INSERT INTO Sessions (UserID, SessionID, SecureSessionID, ExtraData, SceneID, ScenePosition, SceneLookAt)
+                        VALUES (:UserID, :SessionID, :SecureSessionID, :ExtraData, '00000000-0000-0000-0000-000000000000', '<0, 0, 0>', '<0, 0, 0>')";
                 
                 $sth = $db->prepare($sql);
                 
-                if ($sth->execute(array(':UserID' => $this->UserID, ':SessionID' => $this->SessionID, ':SecureSessionID' => $this->SecureSessionID)))
+                if ($sth->execute(array(
+                    ':UserID' => $this->UserID,
+                    ':SessionID' => $this->SessionID,
+                    ':SecureSessionID' => $this->SecureSessionID,
+                    ':ExtraData' => $this->ExtraData)))
                 {
                     if ($sth->rowCount() > 0)
                     {

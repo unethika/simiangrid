@@ -247,17 +247,24 @@ function get_session($userID)
     return null;
 }
 
-function add_session($userID, &$sessionID, &$secureSessionID)
+function add_session($userID, &$sessionID, &$secureSessionID, $extradata = null)
 {
     log_message('info',"add session: $userID");
 
     $config =& get_config();
     $userService = $config['user_service'];
 
-    $response = webservice_post($userService, array(
+    $request = array(
         'RequestMethod' => 'AddSession',
-        'UserID' => $userID)
-    );
+        'UserID' => $userID);
+    
+    if ($extradata != null)
+    {
+        $xd = json_encode($extradata);
+        $request['ExtraData'] = $xd;
+    }
+
+    $response = webservice_post($userService, $request);
 
     if (!empty($response['Success']) &&
         UUID::TryParse($response['SessionID'], $sessionID) &&
@@ -287,18 +294,27 @@ function remove_session($sessionID)
     return false;
 }
 
-function create_session($userID, $sessionID, $secureSessionID)
+function create_session($userID, $sessionID, $secureSessionID, $extradata = null)
 {
     log_message('info',"create session: $userID");
 
     $config =& get_config();
     $gridService = $config['grid_service'];
-    $response = webservice_post($gridService, array(
+
+    $request = array(
         'RequestMethod' => 'AddSession',
         'UserID' => $userID,
         'SessionID' => $sessionID,
-        'SecureSessionID' => $secureSessionID
-    ));
+        'SecureSessionID' => $secureSessionID);
+    
+    if ($extradata != null)
+    {
+        $xd = json_encode($extradata);
+        $request['ExtraData'] = $xd;
+    }
+
+    $response = webservice_post($gridService, $request);
+
     if (!empty($response['success'])) {
         return true;
     } else {
