@@ -62,7 +62,11 @@ class Session implements IOSD
         foreach ($this as $key => $value)
         {
             $out .= sprintf("\"%s\":", $key);
-            if (method_exists($value, "toOSD"))
+            if ($key === "ExtraData")
+            {
+                $out .= $value;
+            }
+            else if (method_exists($value, "toOSD"))
             {
                 $out .= $value->toOSD();
             }

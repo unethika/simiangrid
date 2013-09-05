@@ -82,13 +82,16 @@ class GetSessions implements IGridService
             $session->ScenePosition = Vector3::Parse($obj->ScenePosition);
             $session->SceneLookAt = Vector3::Parse($obj->SceneLookAt);
             $session->LastUpdate = $obj->LastUpdate;
-            $session->ExtraData = $obj->ExtraData;
-            if (empty($session->ExtraData))
-                $session->ExtraData = "{}";
 
+            if (!is_null($obj->ExtraData))
+                $session->ExtraData = $obj->ExtraData;
+            else
+                $session->ExtraData = "{}";
+                
             $found[] = $session->toOSD();
         }
         
+        log_message('debug', 'returning ' . count($found));
         header("Content-Type: application/json", true);
         echo '{ "Success": true, "Sessions": [' . implode(',', $found) . '] }';
         exit();
