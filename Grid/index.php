@@ -284,6 +284,11 @@ else if (stripos($_SERVER['REQUEST_METHOD'], 'POST') !== FALSE)
         exit();
     }
     
+    if (isset($request['cap']))
+    {
+        $capability = trim($request['cap']);
+    }
+
     if (isset($request['RequestMethod']))
     {
         $command = trim($request['RequestMethod']);
