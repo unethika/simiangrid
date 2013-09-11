@@ -43,6 +43,7 @@ require_once(COMMONPATH . 'Vector3.php');
 require_once(COMMONPATH . 'Curl.php');
 require_once(COMMONPATH . 'Capability.php');
 require_once(COMMONPATH . 'SimianGrid.php');
+require_once(COMMONPATH . 'Types.php');
 
 // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 class WebFetchInventoryRequest
@@ -95,19 +96,23 @@ class WebFetchInventoryCategory
 
     public function CopyFromSimianItem($item)
     {
+        $TypeConverter = new SimianTypeConverter;
+
         $this->FolderID->Set($item['ID']);
         $this->ParentID->Set($item['ParentID']);
         $this->Name = $item['Name'];
 
-        $mimes =& get_mimes();
+        //$mimes =& get_mimes();
         if (! empty($item['ExtraData']['LinkedItemType']))
         {
-            $type = isset($mimes[$item['ExtraData']['LinkedItemType']]) ? $mimes[$item['ExtraData']['LinkedItemType']] : -1;
+            //$type = isset($mimes[$item['ExtraData']['LinkedItemType']]) ? $mimes[$item['ExtraData']['LinkedItemType']] : -1;
+            $type = $TypeConverter->Content2Asset($item['ExtraData']['LinkedItemType']);
             $this->Type = $type;
         }
         else
         {
-            $type = isset($mimes[$item['ContentType']]) ? $mimes[$item['ContentType']] : -1;
+            //$type = isset($mimes[$item['ContentType']]) ? $mimes[$item['ContentType']] : -1;
+            $type = $TypeConverter->Content2Asset($item['ContentType']);
             $this->Type = $type;
         }
 
@@ -124,7 +129,7 @@ class WebFetchInventoryCategory
         $result['folder_id'] = $this->FolderID;
         $result['parent_id'] = $this->ParentID;
 
-        $result['version'] = $this->Version;
+        // $result['version'] = $this->Version;
 
         return $result;
     }        
@@ -158,18 +163,18 @@ class WebFetchInventoryPermission
     {
         $result = array();
 
-        $result['base_mask'] = $this->BaseMask;
-        $result['everyone_mask'] = $this->EveryoneMask;
-        $result['group_mask'] = $this->GroupMask;
-        $result['next_owner_mask'] = $this->NextOwnerMask;
-        $result['owner_mask'] = $this->OwnerMask;
-
-        $result['is_owner_group'] = $this->IsOwnerGroup;
-
-        $result['owner_id'] = $this->OwnerID;
         $result['creator_id'] = $this->CreatorID;
+        $result['owner_id'] = $this->OwnerID;
         $result['group_id'] = $this->GroupID;
-        $result['last_owner_id'] = $this->LastOwnerID;
+
+        $result['base_mask'] = $this->BaseMask;
+        $result['owner_mask'] = $this->OwnerMask;
+        $result['group_mask'] = $this->GroupMask;
+        $result['everyone_mask'] = $this->EveryoneMask;
+        $result['next_owner_mask'] = $this->NextOwnerMask;
+        $result['is_owner_group'] = (boolean)($this->IsOwnerGroup);
+
+        //$result['last_owner_id'] = $this->LastOwnerID;
 
         return $result;
     }
@@ -208,16 +213,20 @@ class WebFetchInventoryItem
 
     public function FollowLink($ownerID)
     {
+        $TypeConverter = new SimianTypeConverter;
+        $linktype = $TypeConverter->Content2Asset('application/vnd.ll.link');
+        $linkfoldertype = $TypeConverter->Content2Asset('application/vnd.ll.linkfolder');
+
         // Some useful constants
-        $mimes =& get_mimes();
-        $linktype = $mimes['application/vnd.ll.link'];
+        //$mimes =& get_mimes();
+        //$linktype = $mimes['application/vnd.ll.link'];
 
         if ($this->Type != $linktype)
             return null;
 
         if (! get_inventory_items($ownerID,$this->AssetID,$items,1,1,1))
         {
-            log_message('warn',sprintf('unable to location inventory item %s',$this->AssetID));
+            log_message('warn',sprintf('unable to locate inventory item %s',$this->AssetID));
             return null;
         }
 
@@ -234,6 +243,8 @@ class WebFetchInventoryItem
 
     public function CopyFromSimianItem($item)
     {
+        $TypeConverter = new SimianTypeConverter;
+        
         $this->AssetID->Set($item['AssetID']);
         $this->ItemID->Set($item['ID']);
         $this->ParentID->Set($item['ParentID']);
@@ -245,18 +256,25 @@ class WebFetchInventoryItem
         if (! empty($item['Version']))
             $this->Version = intval($item['Version']);
 
-        $mimes =& get_mimes();
+        //$mimes =& get_mimes();
         if (! empty($item['ExtraData']['LinkedItemType']))
         {
-            $type = isset($mimes[$item['ExtraData']['LinkedItemType']]) ? $mimes[$item['ExtraData']['LinkedItemType']] : -1;
+            //$type = isset($mimes[$item['ExtraData']['LinkedItemType']]) ? $mimes[$item['ExtraData']['LinkedItemType']] : -1;
+            $type = $TypeConverter->Content2Asset($item['ExtraData']['LinkedItemType']);
             $this->Type = $type;
-            $this->InventoryType = $type;
+            
+            // $itype = isset($mimes[$item['ContentType']]) ? $mimes[$item['ContentType']] : -1;
+            $itype = $TypeConverter->Content2Inventory($item['ContentType']);
+            $this->InventoryType = $itype;
         }
         else
         {
-            $type = isset($mimes[$item['ContentType']]) ? $mimes[$item['ContentType']] : -1;
+            //$type = isset($mimes[$item['ContentType']]) ? $mimes[$item['ContentType']] : -1;
+            $type = $TypeConverter->Content2Asset($item['ContentType']);
             $this->Type = $type;
-            $this->InventoryType = $type;
+
+            $itype = $TypeConverter->Content2Inventory($item['ContentType']);
+            $this->InventoryType = $itype;
         }
 
         if (! empty($item['ExtraData']['SalePrice']))
@@ -280,7 +298,7 @@ class WebFetchInventoryItem
             $this->Permissions->GroupMask = empty($parray['GroupMask']) ? 0 : $parray['GroupMask'];
             $this->Permissions->NextOwnerMask = empty($parray['NextOwnerMask']) ? 0 : $parray['NextOwnerMask'];
             $this->Permissions->OwnerMask = empty($parray['OwnerMask']) ? 0 : $parray['OwnerMask'];
-            $this->Permissions->IsOwnerGroup = empty($parray['GroupOwned']) ? 0 : $parray['GroupOwned'];
+            $this->Permissions->IsOwnerGroup = (boolean)(empty($parray['GroupOwned']) ? 0 : $parray['GroupOwned']);
         }
     }
 
@@ -302,7 +320,7 @@ class WebFetchInventoryItem
         $result['desc'] = $this->Desc;
         $result['created_at'] = $this->CreatedAt;
 
-        $result['version'] = $this->Version;
+        //$result['version'] = $this->Version;
         return $result;
     }
 }
@@ -332,22 +350,21 @@ class WebFetchInventoryResponse
     public function AddCategory($category)
     {
         array_push($this->Categories,$category);
-        $this->Descendents++;
+        // $this->Descendents++;
     }
 
     public function AddItem($item)
     {
         array_push($this->Items,$item);
-        $this->Descendents++;
+        // $this->Descendents++;
     }
 
     public function ToArray()
     {
         $result = array();
         $result['agent_id'] = $this->AgentID;
-        $result['owner_id'] = $this->OwnerID;
-        $result['folder_id'] = $this->FolderID;
         $result['descendents'] = $this->Descendents;
+        $result['folder_id'] = $this->FolderID;
 
         $result['categories'] = array();
         foreach ($this->Categories as $cat)
@@ -356,6 +373,9 @@ class WebFetchInventoryResponse
         $result['items'] = array();
         foreach ($this->Items as $item)
             array_push($result['items'],$item->ToArray());
+
+        $result['owner_id'] = $this->OwnerID;
+        $result['version'] = $this->Version;
 
         return $result;
     }
@@ -368,9 +388,13 @@ class WebFetchInvDesc implements IPublicService
     private function WebFetchInventoryReply($req)
     {
         // Some useful constants
-        $mimes =& get_mimes();
-        $linktype = $mimes['application/vnd.ll.link'];
-        $linkfoldertype = $mimes['application/vnd.ll.linkfolder'];
+        //$mimes =& get_mimes();
+        //$linktype = $mimes['application/vnd.ll.link'];
+        //$linkfoldertype = $mimes['application/vnd.ll.linkfolder'];
+
+        $TypeConverter = new SimianTypeConverter;
+        $linktype = $TypeConverter->Content2Asset('application/vnd.ll.link');
+        $linkfoldertype = $TypeConverter->Content2Asset('application/vnd.ll.linkfolder');
 
         $res = new WebFetchInventoryResponse;
 
@@ -393,29 +417,48 @@ class WebFetchInvDesc implements IPublicService
             RequestFailed('Failed to retrieve inventory for folder ' . $req->FolderID);
         }
 
-        foreach ($items as $item)
+        $links = array();
+        
+        foreach (array_reverse($items) as $item)
         {
             if ($item['ID'] == $req->FolderID)
+            {
+                $res->Version = intval($item['Version']);
                 continue;
-
+            }
+            
             if ($item['Type'] == 'Item')
             {
-                log_message('error',sprintf("found item %s",$item['ID']));
+                //log_message('error',sprintf("found item %s",$item['ID']));
 
                 $invitem = new WebFetchInventoryItem;
                 $invitem->CopyFromSimianItem($item);
-                $res->AddItem($invitem);
 
                 if ($invitem->Type == $linktype)
                 {
+                    // this is a link & goes on to the link array
+                    // array_push($links,$invitem);
+                    array_unshift($links,$invitem);
+                    
                     $link = $invitem->FollowLink($req->OwnerID);
-                    if ($link != null)
+                    if ($link == null)
+                    {
+                        log_message('warn',sprintf('unable to retrieve linked inventory item %s',$invitem->ItemID));
+                    }
+                    else
+                    {
+                        // this is the referred to item and goes into the items right away
                         $res->AddItem($link);
+                    }
+                }
+                else
+                {
+                    $res->AddItem($invitem);
                 }
             }
             else if ($item['Type'] == 'Folder')
             {
-                log_message('error',sprintf("found folder %s",$item['ID']));
+                //log_message('error',sprintf("found folder %s",$item['ID']));
 
                 $invcat = new WebFetchInventoryCategory;
                 $invcat->CopyFromSimianItem($item);
@@ -431,7 +474,10 @@ class WebFetchInvDesc implements IPublicService
             }
         }
 
-        $res->Descendents = count($res->Categories) + count($res->Items);
+        foreach ($links as $link)
+            $res->AddItem($link);
+
+        $res->Descendents = count($res->Categories) + count($res->Items) - count($links);
         return $res;
     }
 
@@ -454,7 +500,7 @@ class WebFetchInvDesc implements IPublicService
             array_push($folders,$res->ToArray());
         }
 
-        $result['Folders'] = $folders;
+        $result['folders'] = $folders;
 
         header("Content-Type: application/llsd+xml", true);
         echo llsd_encode($result);

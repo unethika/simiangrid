@@ -82,8 +82,10 @@ class LLSD_Encoder
 				break;
 			
 			case 'boolean': // else if (is_bool($node))
-				if ($node)	echo '<boolean>true</boolean>';
-				else		echo '<boolean>false</boolean>';
+				//if ($node)	echo '<boolean>true</boolean>';
+				//else		echo '<boolean>false</boolean>';
+				if ($node)	echo '<boolean>1</boolean>';
+				else		echo '<boolean>0</boolean>';
 				break;
 			
 			case 'object': // else if (is_object($node))
