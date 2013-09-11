@@ -484,6 +484,13 @@ class WebFetchInvDesc implements IPublicService
     // -----------------------------------------------------------------
     public function Execute($params)
     {
+        $config = &get_config();
+        if (empty($config['authorize_commands']) && empty($config['override_commands']['WebFetchInvDesc']))
+        {
+            log_message('warn','Attempt to invoke protected command; WebFetchInvDesc');
+            RequestFailed('Attempt to invoke protected command');
+        }
+
         if (empty($params['folders']))
         {
             log_message('error','No folders supplied');

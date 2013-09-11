@@ -124,3 +124,18 @@ $config['log_date_format'] = 'Y-m-d H:i:s';
 */
 $config['authorize_commands'] = false;
 
+/*
+|--------------------------------------------------------------------------
+| Override Commands
+|--------------------------------------------------------------------------
+|
+| Some commands will only execute if authorization is turned on.
+| This allows overriding of that for testing.
+|
+| $config['override_commands'] = array(
+|    'WebFetchInvDesc' => TRUE);
+|
+*/
+$config['override_commands'] = array();
+
+
