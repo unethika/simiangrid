@@ -39,6 +39,8 @@ $gMethodName = "(Unknown)";
 
 define('COMMONPATH', str_replace("\\", "/", realpath(dirname(__FILE__) . '/..') . '/GridCommon/'));
 define('BASEPATH', str_replace("\\", "/", realpath(dirname(__FILE__)) . '/'));
+define('URLBASE', str_replace($_SERVER['DOCUMENT_ROOT'],"",BASEPATH));
+
 
 require_once(COMMONPATH . 'Config.php');
 require_once(COMMONPATH . 'Errors.php');
@@ -127,8 +129,8 @@ $capability = null;
 $operation = null;
 $request = null;
 
-$cappattern='@^/GridPublic/CAP/([^/?]+)/([^/]+)/?(\?.*)?$@';
-$nocappattern='@^/GridPublic/([^/?]+)/?(\?.*)?$@';
+$cappattern='@^' . URLBASE . 'CAP/([^/?]+)/([^/]+)/?(\?.*)?$@';
+$nocappattern='@^' . URLBASE . '([^/?]+)/?(\?.*)?$@';
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET')
 {
@@ -194,7 +196,8 @@ else if ($_SERVER['REQUEST_METHOD'] == 'POST')
         else
         {
             log_message('warn', 'Invalid request: ' . $requestURI);
-            RequestFailed('Invalid request format');
+
+            RequestFailed(sprintf('Invalid llsd request format; %s in %s',$requestURI,$xp));
         }
 
         $data = file_get_contents("php://input");
