@@ -33,7 +33,6 @@
  * @license    http://www.debian.org/misc/bsd.license  BSD License (3 Clause)
  * @link       http://openmetaverse.googlecode.com/
  */
-
 define('COMMONPATH', str_replace("\\", "/", realpath(dirname(__FILE__) . '/..') . '/GridCommon/'));
 define('BASEPATH', str_replace("\\", "/", realpath(dirname(__FILE__)) . '/'));
 
@@ -48,6 +47,8 @@ require_once(COMMONPATH . 'SimianGrid.php');
 require_once(COMMONPATH . 'Scene.php');
 require_once(COMMONPATH . 'SceneLocation.php');
 require_once(COMMONPATH . 'Session.php');
+
+require_once(BASEPATH . '../Grid/lib/Class.Appearance.php');
 
 if ( !isset($_SERVER['REQUEST_METHOD']) || $_SERVER['REQUEST_METHOD'] != 'POST' ) {
     header("HTTP/1.1 400 Bad Request");
@@ -101,10 +102,8 @@ xmlrpc_server_register_method($xmlrpc_server, "get_uui", "get_uui");
 // get_online_friends
 // get_user_info
 // locate_user
-
 xmlrpc_server_register_method($xmlrpc_server, "get_uuid", "get_uuid");
 xmlrpc_server_register_method($xmlrpc_server, "get_server_urls", "get_server_urls");
-
 
 $request_xml = file_get_contents("php://input");
 
@@ -191,6 +190,11 @@ function sendresponse($success,$reason,$yourip = null)
     exit();
 }
 
+function hgends_with($str, $sub)
+{
+   return (substr($str, strlen($str) - strlen($sub)) == $sub);
+}
+
 function hg_register_user($user_id, $username, $homeuri)
 {
     $config =& get_config();
@@ -224,7 +228,7 @@ function hg_get_region($hguri, $id)
         if ( isset($response['server_uri']) ) {
             $serveruri = $response['server_uri'];
         } else {
-            $serveruri = "http://" . $response['hostname'] . ':' . $response['http_port'] . '/';
+            $serveruri = "http://" . $response['hostname'] . ':' . $response['http_port'] . ':' .$response['region_name'] . '/';
         }
         return array(
             'uuid' => $response['uuid'],
@@ -299,7 +303,7 @@ function hg_link_region($sceneID, $region_name, $external_name, $x, $y, $regionI
 //taking easy way out... we get the osdmap more or less intact.....
 function hg_login($gatekeeper_uri, $userid, $raw_osd, &$yourip)
 {
-    if (!ends_with($gatekeeper_uri, '/'))
+    if (!hgends_with($gatekeeper_uri, '/'))
         $gatekeeper_uri .= '/';
 
     $uri = $gatekeeper_uri . "foreignagent/" . $userid . "/";
@@ -313,23 +317,28 @@ function hg_login($gatekeeper_uri, $userid, $raw_osd, &$yourip)
     $response_raw = $curl->simple_post($uri, $raw_osd, $options);
     if (empty($response_raw))
     {
-        log_message('warn', '[hypergrid] hg_login failed, no response from server');
-        return false;
+  	log_message('warn', '[hypergrid] hg_login failed, no response from server');
+  	return false;
     }
 
     log_message('debug', 'foreignagent returned ' . $response_raw);
 
     $response = json_decode($response_raw, TRUE);
-    if ( isset($response['success']) && $response['success'] )
+    if ( isset($response['success']) && $response['success'] ) 
     {
-        log_message('debug','[hypergrid] hg_login succeeded');
-        $yourip = empty($response['your_ip']) ? '0.0.0.0' : $response['your_ip'];
-        return true;
+	log_message('debug','[hypergrid] hg_login succeeded');
+	$yourip = empty($response['your_ip']) ? '0.0.0.0' : $response['your_ip'];
+	return true;
     }
 
+    else
+    {
     $yourip = '0.0.0.0';
     log_message('warn', '[hypergrid] hg_login failed with reason ' . (isset($response['reason']) ? $response['reason'] : 'no reason given'));
     return false;
+    }
+
+    return $success;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -583,6 +592,7 @@ function get_uuid($method_name, $params, $user_data)
     return $response;
 }
 
+
 function get_server_urls($method_name, $params, $user_data)
 {
     log_message('info', "[hypergrid] $method_name called");
@@ -599,13 +609,18 @@ function get_server_urls($method_name, $params, $user_data)
     // SRV_FriendsServerURI
     // SRV_IMServerURI
     $response[''] = "";
-
     return $response;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Home and ForeignAgent Handlers
 ///////////////////////////////////////////////////////////////////////////////
+
+function gzdecode($data)
+{
+ return gzinflate(substr($data,10,-8));
+}
 
 function foreignagent_handler($path_tail, $data)
 {
@@ -616,7 +631,7 @@ function foreignagent_handler($path_tail, $data)
         log_message('info',"[hypergrid] handling compressed foreign agent data");
         $data = gzdecode($data);
     }
-    
+ 
     $config =& get_config();
 
     $userid = $path_tail[0];
@@ -628,7 +643,7 @@ function foreignagent_handler($path_tail, $data)
         log_message('error',sprintf('[hypergrid] failed to decode foreignagent json string %s',$data));
         sendresponse(false,'failed to decode foreignagent string');
     }
-
+    
     $dest_x = $osd['destination_x'];
     $dest_y = $osd['destination_y'];
     
@@ -648,14 +663,14 @@ function foreignagent_handler($path_tail, $data)
     $start_pos = $osd['start_pos'];
     $appearance = $osd['packed_appearance'];
 
-    //$service_urls['HomeURI'] = $osd['service_urls'][1];
-    //$service_urls['GatekeeperURI'] = $osd['service_urls'][3];
-    //$service_urls['InventoryServerURI'] = $osd['service_urls'][5];
-    //$service_urls['AssetServerURI'] = $osd['service_urls'][7];
+    $service_urls['HomeURI'] = $osd['service_urls'][1];
+    $service_urls['GatekeeperURI'] = $osd['service_urls'][3];
+    $service_urls['InventoryServerURI'] = $osd['service_urls'][5];
+    $service_urls['AssetServerURI'] = $osd['service_urls'][7];
     if ( isset($osd['client_ip']) ) {
         $client_ip = $osd['client_ip'];
     } else {
-        log_message('info','[hypergrid] no client ip specified in foreignagent request');
+	log_message('info','[hypergrid] no client ip specified in foreignagent request');
         $client_ip = null;
     }
 
@@ -665,20 +680,18 @@ function foreignagent_handler($path_tail, $data)
         echo "missing destination_uuid";
         exit();
     }
-    
+
     $dest_uuid = $osd['destination_uuid'];
     $scene = lookup_scene_by_id($dest_uuid);
     if ($scene == null)
     {
         header("HTTP/1.1 400 Bad Request");
-        echo "invalid destination uuid";
+	echo "invalid destination uuid";
         exit();
     }
     $dest_name = $scene->Name;
-    
     $homeuri = $osd['serviceurls']['HomeURI'];
     
-    // $username = $osd['first_name'] . ' ' . $osd['last_name'] . '@' . $service_urls['HomeURI'];
     $username = $osd['first_name'] . ' ' . $osd['last_name'];
     log_message('info',"[hypergrid] check user name $username with homeuri $homeuri");
     if ($homeuri != $config['hypergrid_uri'])
@@ -692,16 +705,19 @@ function foreignagent_handler($path_tail, $data)
     {
         $extradata = array('ClientIP' => $client_ip);
     }
-    
+
     log_message('info',"[hypergrid] create session for $username");
     create_session($userid, $session_id, $secure_session_id, $extradata);
-    
-    $result = create_opensim_presence_full($scene->Address, $dest_name, $dest_uuid, $dest_x, $dest_y,
-					   $userid, $circuit_code, $username, $appearance, $session_id, $secure_session_id, $start_pos,
-					   $caps_path, $client_ip, $osd['serviceurls'], 1073741824, $service_session_id,
-					   $seedCaps);
 
-    sendresponse($result,'no reason given');
+   /* $result = create_opensim_presence_full($scene->Address, $dest_name, $dest_uuid, $dest_x, $dest_y,
+	      $userid, $circuit_code, $username, $appearance, $session_id, $secure_session_id, $start_pos,
+	      $caps_path, $client_ip, $osd['serviceurls'], 1073741824, $service_session_id,$seedCaps);*/
+ 
+	$tp_flags = 128;
+	$seedCapability = null;   
+$result = create_opensim_presence_full($scene->Address, $dest_name, $dest_uuid, $dest_x, $dest_y, $userid, $circuit_code, $username, $appearance, $session_id, $secure_session_id, $start_pos, $caps_path, $client_ip, $osd['serviceurls'], $tp_flags, $service_session_id, $seedCapability);
+ 
+   sendresponse($result,'no reason given'); 
 }
 
 function homeagent_handler($path_tail, $data)
@@ -716,7 +732,7 @@ function homeagent_handler($path_tail, $data)
 
     $userid = $path_tail[0];
     log_message('info', "homeagent_handler called for $userid with $data");
-    
+
     $osd = decode_recursive_json($data);
     if ($osd == null)
     {
@@ -725,12 +741,16 @@ function homeagent_handler($path_tail, $data)
     }
     
     $gatekeeper_uri = $osd['gatekeeper_serveruri'];
-    
+
     if (! isset($osd['destination_x']))
         $osd['destination_x'] = 128;
 
     if (! isset($osd['destination_y']))
         $osd['destination_y'] = 128;
+
+    $dest_uuid = $osd['destination_uuid'];
+    $server_uri = $osd['destination_serveruri'];
+    //$scene_name = $osd['destination_name'];
 
     if (! isset($osd['client_ip']) )
     {
@@ -749,7 +769,7 @@ function homeagent_handler($path_tail, $data)
         log_message('debug','missing service_session_id, generating a new one');
         $osd['service_session_id'] = $gatekeeper_uri . ';' . UUID::Random();
     }
-    
+
     /* $dest_uuid = $osd['destination_uuid']; */
     /* $caps_path = $osd['caps_path']; */
     /* $username = $osd['first_name'] . ' ' . $osd['last_name']; */
@@ -759,24 +779,24 @@ function homeagent_handler($path_tail, $data)
     /* $start_pos = $osd['start_pos']; */
     /* $appearance = $osd['packed_appearance']; */
     /* $server_uri = $osd['destination_serveruri']; */
-
+    
     $data = json_encode($osd);
     log_message('info',"[hypergrid] login to region with $data");
 
     $result = array();
 
-    if ( hg_login($gatekeeper_uri, $userid, $data, $yourip) )
-    {
-        $result['success'] = true;
-        $result['reason'] = "success";
-        $result['your_ip'] = $yourip;
-        //echo '{"success": true, "reason": "success"}';
-    } else {
-        $result['success'] = false;
-        $result['reason'] = "hypergrid login failed";
-        $result['your_ip'] = $yourip;
-        // echo '{"success": false, "reason": "hypergrid login failed"}';
-    }
+   	if ( hg_login($gatekeeper_uri, $userid, $data, $yourip) )
+    		{
+        	$result['success'] = true;
+        	$result['reason'] = "success";
+        	$result['your_ip'] = $yourip;
+        	//echo '{"success": true, "reason": "success"}';
+    		} else {
+        	$result['success'] = false;
+        	$result['reason'] = "hypergrid login failed";
+        	$result['your_ip'] = $yourip;
+        	// echo '{"success": false, "reason": "hypergrid login failed"}';
+    		}
 
     $jresult = json_encode($result);
     log_message('info',"[hypergrid] homeagent returns $jresult");
@@ -838,3 +858,4 @@ function refresh_map_handler($data)
     hg_refresh_map($scene_id);
     exit();
 }
+

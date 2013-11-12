@@ -39,11 +39,6 @@ interface IGridService
     public function Execute($db, $request);
 }
 
-interface IPublicService
-{
-    public function Execute($request);
-}
-
 interface IOSD
 {
     public function toOSD();
