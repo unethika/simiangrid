@@ -49,6 +49,8 @@ require_once(COMMONPATH . 'Scene.php');
 require_once(COMMONPATH . 'SceneLocation.php');
 require_once(COMMONPATH . 'Session.php');
 
+require_once(BASEPATH . '../Grid/lib/Class.Appearance.php');
+
 if ( !isset($_SERVER['REQUEST_METHOD']) || $_SERVER['REQUEST_METHOD'] != 'POST' ) {
     header("HTTP/1.1 400 Bad Request");
     exit();
@@ -191,6 +193,11 @@ function sendresponse($success,$reason,$yourip = null)
     exit();
 }
 
+function hgends_with($str, $sub)
+{
+   return (substr($str, strlen($str) - strlen($sub)) == $sub);
+}
+
 function hg_register_user($user_id, $username, $homeuri)
 {
     $config =& get_config();
@@ -224,7 +231,7 @@ function hg_get_region($hguri, $id)
         if ( isset($response['server_uri']) ) {
             $serveruri = $response['server_uri'];
         } else {
-            $serveruri = "http://" . $response['hostname'] . ':' . $response['http_port'] . '/';
+            $serveruri = "http://" . $response['hostname'] . ':' . $response['http_port'] . ':' .$response['region_name'] . '/';
         }
         return array(
             'uuid' => $response['uuid'],
@@ -299,7 +306,7 @@ function hg_link_region($sceneID, $region_name, $external_name, $x, $y, $regionI
 //taking easy way out... we get the osdmap more or less intact.....
 function hg_login($gatekeeper_uri, $userid, $raw_osd, &$yourip)
 {
-    if (!ends_with($gatekeeper_uri, '/'))
+    if (!hgends_with($gatekeeper_uri, '/'))
         $gatekeeper_uri .= '/';
 
     $uri = $gatekeeper_uri . "foreignagent/" . $userid . "/";
@@ -327,9 +334,14 @@ function hg_login($gatekeeper_uri, $userid, $raw_osd, &$yourip)
         return true;
     }
 
+    else
+    {
     $yourip = '0.0.0.0';
     log_message('warn', '[hypergrid] hg_login failed with reason ' . (isset($response['reason']) ? $response['reason'] : 'no reason given'));
     return false;
+    }
+
+    return $success;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -607,6 +619,11 @@ function get_server_urls($method_name, $params, $user_data)
 /// Home and ForeignAgent Handlers
 ///////////////////////////////////////////////////////////////////////////////
 
+function gzdecode($data)
+{
+ return gzinflate(substr($data,10,-8));
+}
+
 function foreignagent_handler($path_tail, $data)
 {
     log_message('info', "[hypergrid] foreignagent_handler called");
@@ -648,10 +665,10 @@ function foreignagent_handler($path_tail, $data)
     $start_pos = $osd['start_pos'];
     $appearance = $osd['packed_appearance'];
 
-    //$service_urls['HomeURI'] = $osd['service_urls'][1];
-    //$service_urls['GatekeeperURI'] = $osd['service_urls'][3];
-    //$service_urls['InventoryServerURI'] = $osd['service_urls'][5];
-    //$service_urls['AssetServerURI'] = $osd['service_urls'][7];
+    $service_urls['HomeURI'] = $osd['service_urls'][1];
+    $service_urls['GatekeeperURI'] = $osd['service_urls'][3];
+    $service_urls['InventoryServerURI'] = $osd['service_urls'][5];
+    $service_urls['AssetServerURI'] = $osd['service_urls'][7];
     if ( isset($osd['client_ip']) ) {
         $client_ip = $osd['client_ip'];
     } else {
@@ -695,13 +712,16 @@ function foreignagent_handler($path_tail, $data)
     
     log_message('info',"[hypergrid] create session for $username");
     create_session($userid, $session_id, $secure_session_id, $extradata);
-    
-    $result = create_opensim_presence_full($scene->Address, $dest_name, $dest_uuid, $dest_x, $dest_y,
-					   $userid, $circuit_code, $username, $appearance, $session_id, $secure_session_id, $start_pos,
-					   $caps_path, $client_ip, $osd['serviceurls'], 1073741824, $service_session_id,
-					   $seedCaps);
 
-    sendresponse($result,'no reason given');
+   /* $result = create_opensim_presence_full($scene->Address, $dest_name, $dest_uuid, $dest_x, $dest_y,
+	      $userid, $circuit_code, $username, $appearance, $session_id, $secure_session_id, $start_pos,
+	      $caps_path, $client_ip, $osd['serviceurls'], 1073741824, $service_session_id,$seedCaps);*/
+ 
+	$tp_flags = 128;
+	$seedCapability = null;   
+$result = create_opensim_presence_full($scene->Address, $dest_name, $dest_uuid, $dest_x, $dest_y, $userid, $circuit_code, $username, $appearance, $session_id, $secure_session_id, $start_pos, $caps_path, $client_ip, $osd['serviceurls'], $tp_flags, $service_session_id, $seedCapability);
+ 
+   sendresponse($result,'no reason given'); 
 }
 
 function homeagent_handler($path_tail, $data)
@@ -731,6 +751,10 @@ function homeagent_handler($path_tail, $data)
 
     if (! isset($osd['destination_y']))
         $osd['destination_y'] = 128;
+
+    $dest_uuid = $osd['destination_uuid'];
+    $server_uri = $osd['destination_serveruri'];
+    //$scene_name = $osd['destination_name'];
 
     if (! isset($osd['client_ip']) )
     {
