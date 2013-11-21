@@ -1,6 +1,5 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-/**
- * Simian grid services
+<?php
+/** Simian grid services
  *
  * PHP version 5
  *
@@ -33,85 +32,64 @@
  * @license    http://www.debian.org/misc/bsd.license  BSD License (3 Clause)
  * @link       http://openmetaverse.googlecode.com/
  */
+require_once(COMMONPATH . 'ALT.php');
 
-interface IGridService
+class MoveInventoryNodes implements IGridService
 {
-    public function Execute($db, $request);
-}
-
-interface IPublicService
-{
-    public function Execute($request);
-}
-
-interface IOSD
-{
-    public function toOSD();
-    public static function fromOSD($strOsd);
-}
-
-class Asset
-{
-    public $ID;
-    public $CreatorID;
-    public $ContentLength;
-    public $ContentType;
-    public $CreationDate;
-    public $SHA256;
-    public $Temporary;
-    public $Public;
-    public $Data;
-}
-
-class MapTile
-{
-    public $X;
-    public $Y;
-    public $Data;
-}
-
-class Inventory
-{
-    public $ID;
-    public $ParentID;
-    public $OwnerID;
-    public $Name;
-    public $ContentType;
-    public $ExtraData;
-    public $CreationDate;
-    public $Type;
-}
-
-interface IAvatarInventoryFolder
-{
-    public function Folders();
-    public function Items();
-    public function Appearance();
-    public function Configure();
-}
-
-class AvatarInventoryFolderFactory
-{
-    public static function Create($type,$name,$userid)
-    {
-        if (class_exists($type))
-            return new $type($name,$userid);
+    private $inventory;
     
-        $classFile = BASEPATH . 'avatar/Avatar.' . $type . '.php';
-        if (file_exists($classFile))
+    public function Execute($db, $params)
+    {
+        $ownerID = NULL;
+        $folderID = NULL;
+        
+        if (!isset($params['OwnerID'], $params['FolderID'], $params['Items']) ||
+            !UUID::TryParse($params['OwnerID'], $ownerID) ||
+            !UUID::TryParse($params['FolderID'], $folderID))
         {
-            include_once $classFile;
-            return new $type($name,$userid);
+            header("Content-Type: application/json", true);
+            echo '{ "Message": "Invalid parameters" }';
+            exit();
+        }
+        
+        $itemIDs = explode(',', $params['Items']);
+        if (!isset($itemIDs) || count($itemIDs) < 1)
+        {
+            header("Content-Type: application/json", true);
+            echo '{ "Message": "Invalid parameters" }';
+            exit();
+        }
+        
+        $uuidItemIDs = array();
+        foreach ($itemIDs as $itemID)
+        {
+            $parsedItemID = NULL;
+            
+            if (UUID::TryParse($itemID, $parsedItemID))
+            {
+                $uuidItemIDs[] = $parsedItemID;
+            }
+            else
+            {
+                header("Content-Type: application/json", true);
+                echo '{ "Message": "Invalid parameters" }';
+                exit();
+            }
+        }
+        
+        $this->inventory = new ALT($db);
+        
+        if ($this->inventory->MoveNodes($uuidItemIDs, $folderID))
+        {
+            header("Content-Type: application/json", true);
+            echo '{ "Success": true }';
+            exit();
         }
         else
         {
-            log_message('warn', "requested avatar $type not found, using default");
-    
-            $type = "DefaultAvatar";
-            $classFile = BASEPATH . 'avatar/Avatar.DefaultAvatar.php';
-
-            include_once $classFile;
-            return new $type($name,$userid);
+            header("Content-Type: application/json", true);
+            echo '{ "Message": "Database query error" }';
+            exit();
         }
     }
 }

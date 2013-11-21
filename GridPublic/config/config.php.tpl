@@ -2,6 +2,27 @@
 
 /*
 |--------------------------------------------------------------------------
+| Database Connectivity Settings
+|--------------------------------------------------------------------------
+|
+| The settings needed to access your database
+|
+*/
+$config['db_hostname'] = "@@DB_HOST@@";
+$config['db_username'] = "@@DB_USER@@";
+$config['db_password'] = "@@DB_PASSWORD@@";
+$config['db_database'] = "@@DB_NAME@@";
+$config['db_driver'] = "mysql";
+$config['db_prefix'] = "";
+$config['db_persistent'] = TRUE;
+
+// This is the number of days between updates to LastAccess for Assets
+// and is useful if you want to clean up unused Assets from the Db
+// 0 turns off all updates and is the old behavior
+$config['access_update_interval'] = 0;
+
+/*
+|--------------------------------------------------------------------------
 | Service URLs
 |--------------------------------------------------------------------------
 |

@@ -10,7 +10,6 @@
 */
 $config['user_service'] = "@@USER_SERVICE@@";
 $config['grid_service'] = "@@GRID_SERVICE@@";
-$config['login_service'] = "@@LOGIN_SERVICE@@";
 $config['asset_service'] = "@@ASSET_SERVICE@@";
 $config['inventory_service'] = "@@INVENTORY_SERVICE@@";
 $config['map_service'] = "@@MAP_SERVICE@@";
@@ -28,7 +27,7 @@ $config['map_service'] = "@@MAP_SERVICE@@";
 $config['hg_user_service'] = $config['user_service'];
 $config['hg_asset_service'] = $config['asset_service'];
 $config['hg_inventory_service'] = $config['inventory_service'];
-$config['hypergrid_uri'] = $config['login_service'] . 'hypergrid.php';
+$config['hypergrid_uri'] = $config['grid_service'] . 'hypergrid.php';
 
 //Default Region for HG
 $config['hypergrid_default_region'] = "OpenSim Test";

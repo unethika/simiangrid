@@ -38,7 +38,7 @@ $gStartTime = microtime(true);
 $gMethodName = "(Unknown)";
 
 define('COMMONPATH', str_replace("\\", "/", realpath(dirname(__FILE__) . '/..') . '/GridCommon/'));
-define('BASEPATH', str_replace("\\", "/", realpath(dirname(__FILE__)) . 'Public/'));
+define('BASEPATH', str_replace("\\", "/", realpath(dirname(__FILE__)) . '/'));
 
 require_once(COMMONPATH . 'Config.php');
 require_once(COMMONPATH . 'Errors.php');
@@ -235,7 +235,7 @@ else if (stripos($_SERVER['REQUEST_METHOD'], 'DELETE') !== FALSE)
         $asset = new Asset();
         $asset->ID = $uuid;
         $gMethodName = 'RemoveAsset';
-        //execute_command('RemoveAsset', $capability, $db, $asset);
+        execute_command('RemoveAsset', $capability, $db, $asset);
         exit();
     }
     else

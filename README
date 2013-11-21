@@ -1,3 +1,21 @@
+This version of SimianGrid has two index.php files in the Grid folder.
+One of them is named "local.php" and it is meant to be used with
+mod_rewrite to restrict the ip addresses that can connect to it using
+htaccess directives.  local.php uses every lib/Class.* file and should be used
+for the local grid.  using mod_rewrite to redirect the index.php call to login.php
+allows for greater control and security of the grid as the correct mod_rewrite
+directives can restrict access to local.php to only selected IP addresses.
+
+The index.php index.php uses the GridPublic/lib folder for access to functions.
+Only those functions required for local and hypergrid access are available.
+This index.php is also modified to stop DELETE calls from executing.
+
+
+The purpose of this setup is to allow for HG authentication and services to proceed
+while blocking random region servers from making unauthorized local connections
+to the grid.
+
+
 SimianGrid -- http://code.google.com/p/openmetaverse/
 
 Confirmed installers working on Windows 2008 WE with
