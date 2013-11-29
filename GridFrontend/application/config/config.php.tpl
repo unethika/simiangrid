@@ -30,6 +30,7 @@ $config['user_service'] = '@@USER_SERVICE@@';
 $config['inventory_service'] = '@@INVENTORY_SERVICE@@';
 $config['grid_service'] = '@@GRID_SERVICE@@';
 $config['asset_service'] = '@@ASSET_SERVICE@@';
+$config['login_service'] = '@@LOGIN_SERVICE@@';
 $config['hypergrid_service'] = 'http://localhost/Grid/hypergrid.php';
 
 /*
